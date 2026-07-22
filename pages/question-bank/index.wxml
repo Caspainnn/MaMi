@@ -1,0 +1,8 @@
+<view class="page">
+  <view class="current-bank card"><text class="bank-label">当前题库</text><text class="bank-name">{{currentBank.name}}</text><text class="bank-count">{{currentBank.count}} 题 · 题库切换请前往“我的 - 斩杀计划”</text></view>
+  <view class="search card"><text>⌕</text><input placeholder="搜索题目名称" value="{{keyword}}" bindinput="search" /></view>
+  <scroll-view class="categories" scroll-x><view class="category {{activeCategory === item ? 'category-active' : ''}}" wx:for="{{categories}}" wx:key="*this" bindtap="chooseCategory" data-name="{{item}}">{{item}}</view></scroll-view>
+  <view class="problem-count">共 {{displayedProblems.length}} 道{{isCloudData ? '云端' : '演示'}}题目</view>
+  <view class="problem card" wx:for="{{displayedProblems}}" wx:key="id" bindtap="openProblem" data-id="{{item.id}}"><view class="problem-main"><text class="problem-number">#{{item.number}}</text><text class="problem-title">{{item.title}}</text><text class="problem-category">{{item.category}}</text></view><text class="difficulty difficulty-{{item.difficultyClass}}">{{item.difficulty}}</text></view>
+  <view class="empty" wx:if="{{!displayedProblems.length}}">未找到匹配题目</view>
+</view>

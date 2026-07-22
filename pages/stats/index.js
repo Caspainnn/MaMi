@@ -1,0 +1,1 @@
+Page({ data: { days: [{ day: '一', active: false }, { day: '二', active: false }, { day: '三', active: false }, { day: '四', active: false }, { day: '五', active: false }, { day: '六', active: false }, { day: '日', active: false }] } })
