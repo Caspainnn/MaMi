@@ -80,6 +80,19 @@ async function listProblems(bankCode, keyword = '', category = '') {
 exports.main = async (event = {}) => {
   try {
     const action = event.action || 'list'
+    if (action === 'banks') {
+      const result = await db.collection('question_banks').get()
+      return {
+        success: true,
+        banks: result.data.map((bank) => ({
+          id: bank._id,
+          code: bank.code,
+          name: bank.name,
+          description: bank.description || '',
+          count: bank.totalCount || 0,
+        })),
+      }
+    }
     const bankCode = event.bankCode || 'leetcode-hot-100'
     const list = await listProblems(bankCode, event.keyword, event.category)
     if (!list.success || action === 'list') return list

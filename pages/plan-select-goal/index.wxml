@@ -1,0 +1,15 @@
+<view class="page" wx:if="{{bank}}">
+  <view class="steps"><view class="step"></view><view class="step active"></view></view>
+  <view class="heading"><text class="title">定下目标</text><text class="subtitle">{{bank.name}} · 共 {{bank.count}} 道题</text></view>
+  <view class="goal-card {{planType === 'by_days' ? 'selected' : ''}}" bindtap="chooseType" data-type="by_days">
+    <text class="goal-name">根据天数</text><text class="goal-desc">设定目标天数，自动估算每日新刷量</text>
+    <view class="input-row" wx:if="{{planType === 'by_days'}}"><input type="number" value="{{value}}" placeholder="至少 15 天" bindinput="updateValue" /><text>天</text></view>
+  </view>
+  <view class="goal-card {{planType === 'by_daily_new_count' ? 'selected' : ''}}" bindtap="chooseType" data-type="by_daily_new_count">
+    <text class="goal-name">根据每日新题数</text><text class="goal-desc">设定每日新刷题数，自动估算完成天数</text>
+    <view class="input-row" wx:if="{{planType === 'by_daily_new_count'}}"><input type="number" value="{{value}}" placeholder="输入每日新题数" bindinput="updateValue" /><text>题/天</text></view>
+  </view>
+  <text class="validation" wx:if="{{validationMessage}}">{{validationMessage}}</text>
+  <view class="estimate" wx:if="{{estimate}}"><text class="estimate-title">本次计划预估</text><view><text>平均新刷</text><text>{{estimate.dailyNewCount}} 题/日</text></view><view><text>平均复刷</text><text>{{estimate.averageReviewCount}} 题/日</text></view><view><text>预计完成</text><text>{{estimate.finishDate}}（第 {{estimate.targetDays}} 天）</text></view><text class="estimate-hint">按第 0、1、3、7、15 天的理想复习节点预估；实际复刷会依据提交结果调整。</text></view>
+  <button class="submit {{!estimate ? 'disabled' : ''}}" disabled="{{!estimate || submitting}}" loading="{{submitting}}" bindtap="createPlan">定好了，开刷！</button>
+</view>

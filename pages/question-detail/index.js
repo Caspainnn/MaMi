@@ -10,9 +10,14 @@ Page({
     previousProblemId: '',
     nextProblemId: '',
     bankCode: 'leetcode-hot-100',
+    taskProblemIds: [],
   },
   onLoad(options) {
     this.setData({ bankCode: options.bankCode || 'leetcode-hot-100' })
+    const taskNavigation = getApp().globalData.taskNavigation
+    if (options.context && taskNavigation && taskNavigation.bankCode === this.data.bankCode) {
+      this.setData({ taskProblemIds: taskNavigation.problemIds || [] })
+    }
     this.loadCloudProblem(options.id || String(problems[0].id))
   },
   loadCloudProblem(problemId) {
@@ -21,13 +26,15 @@ Page({
       data: { action: 'detail', bankCode: this.data.bankCode, problemId },
     }).then(({ result }) => {
       if (!result || !result.success) throw new Error((result && result.message) || '云端题目不可用')
+      const taskIndex = this.data.taskProblemIds.indexOf(result.problem.id)
+      const hasTaskContext = taskIndex >= 0
       this.setData({
         problem: result.problem,
         bankName: result.bank.name,
-        previousProblemId: result.previousProblemId,
-        nextProblemId: result.nextProblemId,
-        canPrev: Boolean(result.previousProblemId),
-        canNext: Boolean(result.nextProblemId),
+        previousProblemId: hasTaskContext ? this.data.taskProblemIds[taskIndex - 1] || '' : result.previousProblemId,
+        nextProblemId: hasTaskContext ? this.data.taskProblemIds[taskIndex + 1] || '' : result.nextProblemId,
+        canPrev: hasTaskContext ? taskIndex > 0 : Boolean(result.previousProblemId),
+        canNext: hasTaskContext ? taskIndex < this.data.taskProblemIds.length - 1 : Boolean(result.nextProblemId),
         activeTab: 'description',
       })
     }).catch((error) => {

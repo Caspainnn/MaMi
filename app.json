@@ -4,7 +4,9 @@
     "pages/question-bank/index",
     "pages/question-detail/index",
     "pages/stats/index",
-    "pages/profile/index"
+    "pages/profile/index",
+    "pages/plan-select-bank/index",
+    "pages/plan-select-goal/index"
   ],
   "window": {
     "navigationBarTitleText": "码秘 MaMi",

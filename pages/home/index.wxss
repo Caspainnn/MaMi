@@ -9,4 +9,4 @@
 .task { display: flex; align-items: center; padding: 24rpx; }
 .task-index { width: 48rpx; height: 48rpx; border-radius: 50%; text-align: center; line-height: 48rpx; color: #5B5BFF; background: #eeeeff; font-weight: 700; }
 .task-info { flex: 1; margin-left: 20rpx; }.task-title, .task-meta { display:block; }.task-title { font-size: 30rpx; font-weight: 600; }.task-meta { margin-top: 8rpx; font-size: 24rpx; color:#8d93a5; }.arrow { font-size:48rpx; color:#aeb3c2; }
-.empty { display:flex; align-items:center; gap:16rpx; padding:34rpx 28rpx; color:#697086; font-size:26rpx; }.empty-icon { color:#22c55e; font-size:34rpx; font-weight:700; }
+.empty { display:flex; align-items:center; gap:16rpx; margin-top:20rpx; padding:34rpx 28rpx; color:#697086; font-size:26rpx; }.empty-icon { color:#22c55e; font-size:34rpx; font-weight:700; }
