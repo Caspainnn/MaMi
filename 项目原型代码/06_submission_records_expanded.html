@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>提交记录（展开）- 斩杀计划</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f7;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        
+        .phone-container {
+            width: 375px;
+            min-height: 812px;
+            background: #ffffff;
+            position: relative;
+            padding-bottom: 80px;
+        }
+        
+        /* 顶部导航 */
+        .top-nav {
+            display: flex;
+            align-items: center;
+            padding: 50px 16px 16px;
+            gap: 12px;
+        }
+        
+        .back-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: #5B5BFF;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+        }
+        
+        .title-bar {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f5f5f7;
+            border-radius: 24px;
+            padding: 10px 16px;
+            font-size: 15px;
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .title-bar .arrow {
+            margin: 0 8px;
+            color: #999;
+        }
+        
+        .new-btn {
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: 1.5px solid #5B5BFF;
+            color: #5B5BFF;
+            font-size: 14px;
+            font-weight: 500;
+            background: #fff;
+        }
+        
+        /* 题目标题区 */
+        .problem-header {
+            padding: 20px 24px;
+        }
+        
+        .problem-title {
+            font-size: 36px;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 16px;
+        }
+        
+        .tags-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .tag {
+            padding: 6px 14px;
+            border-radius: 16px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+        
+        .tag-streak {
+            background: #dbeafe;
+            color: #2563eb;
+        }
+        
+        .tag-easy {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+        
+        /* Tab切换 */
+        .tabs {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            border-radius: 24px;
+            font-size: 15px;
+            font-weight: 500;
+            border: 1.5px solid #5B5BFF;
+            color: #5B5BFF;
+            background: #fff;
+        }
+        
+        .tab.active {
+            background: #5B5BFF;
+            color: #fff;
+        }
+        
+        /* 提交记录列表 */
+        .record-list {
+            padding: 0 16px;
+        }
+        
+        .record-item {
+            background: linear-gradient(135deg, #5B5BFF, #7C7CFF);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 16px;
+            color: white;
+        }
+        
+        .record-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        
+        .record-status {
+            font-size: 20px;
+            font-weight: 600;
+        }
+        
+        .record-date {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .record-desc {
+            font-size: 14px;
+            line-height: 1.6;
+            opacity: 0.95;
+            margin-bottom: 16px;
+        }
+        
+        .code-preview {
+            background: rgba(255,255,255,0.15);
+            border-radius: 12px;
+            padding: 12px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 11px;
+            line-height: 1.5;
+            backdrop-filter: blur(10px);
+        }
+        
+        .code-preview .code-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+            font-size: 12px;
+            opacity: 0.9;
+        }
+        
+        .code-time {
+            margin-left: auto;
+        }
+        
+        /* 底部导航 */
+        .bottom-nav {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 70px;
+            background: #ffffff;
+            border-top: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding-bottom: 10px;
+        }
+        
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            font-size: 12px;
+            color: #999;
+        }
+        
+        .nav-item.active {
+            color: #5B5BFF;
+        }
+        
+        .nav-icon {
+            font-size: 22px;
+        }
+    </style>
+</head>
+<body>
+    <div class="phone-container">
+        <!-- 顶部导航 -->
+        <div class="top-nav">
+            <div class="back-btn">←</div>
+            <div class="title-bar">
+                LeetCode Hot 100
+                <span class="arrow">〈 〉</span>
+            </div>
+            <button class="new-btn">斩</button>
+        </div>
+        
+        <!-- 题目标题 -->
+        <div class="problem-header">
+            <div class="problem-title">两数之和</div>
+            <div class="tags-row">
+                <span class="tag tag-streak">一连</span>
+                <span class="tag tag-easy">简单</span>
+            </div>
+            
+            <div class="tabs">
+                <div class="tab">题目详情</div>
+                <div class="tab active">提交记录</div>
+            </div>
+        </div>
+        
+        <!-- 提交记录列表 -->
+        <div class="record-list">
+            <div class="record-item">
+                <div class="record-header">
+                    <span class="record-status">执行出错</span>
+                    <span class="record-date">2026.06.18</span>
+                </div>
+                <div class="record-desc">
+                    提交触发语法报错，因括号、标点、格式等基础书写失误，代码无法编译运行。逻辑无问题，后续需优先自查语法格式，杜绝低级错误。
+                </div>
+                <div class="code-preview">
+                    <div class="code-header">
+                        <span>⚛️</span>
+                        <span>代码</span>
+                        <span class="code-time">&lt;15 分钟</span>
+                    </div>
+class Solution(object):
+&nbsp;&nbsp;def lengthOfLongestSubstring(self, s):
+&nbsp;&nbsp;&nbsp;&nbsp;:type s: str
+&nbsp;&nbsp;&nbsp;&nbsp;:rtype: int
+&nbsp;&nbsp;&nbsp;&nbsp;# 暴力枚举、滑动窗口
+&nbsp;&nbsp;&nbsp;&nbsp;length=max=0
+&nbsp;&nbsp;&nbsp;&nbsp;i=l=0
+&nbsp;&nbsp;&nbsp;&nbsp;r=s=1 # 待添加
+&nbsp;&nbsp;&nbsp;&nbsp;pool=[0]*26
+&nbsp;&nbsp;&nbsp;&nbsp;pool[ord(s[i])-ord('a')]=1
+&nbsp;&nbsp;&nbsp;&nbsp;while r&lt;length:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if pool[ord(s[r])-ord('a')]==0:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# 新增
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pool[ord(s[r])-ord('a')]+=1
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;r+=1
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ans=max(ans,r-l)
+                </div>
+            </div>
+            
+            <div class="record-item" style="opacity: 0.7;">
+                <div class="record-header">
+                    <span class="record-status">运行超时</span>
+                    <span class="record-date">2026.07.08</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 底部导航 -->
+        <div class="bottom-nav">
+            <div class="nav-item">
+                <div class="nav-icon">🏠</div>
+                <span>首页</span>
+            </div>
+            <div class="nav-item active">
+                <div class="nav-icon">📖</div>
+                <span>题库</span>
+            </div>
+            <div class="nav-item">
+                <div class="nav-icon">📊</div>
+                <span>统计</span>
+            </div>
+            <div class="nav-item">
+                <div class="nav-icon">👤</div>
+                <span>我的</span>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>选择题库 - 斩杀计划</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f7;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        
+        .phone-container {
+            width: 375px;
+            min-height: 812px;
+            background: #ffffff;
+            position: relative;
+            padding-bottom: 80px;
+        }
+        
+        /* 顶部导航 */
+        .top-nav {
+            display: flex;
+            align-items: center;
+            padding: 50px 16px 16px;
+            gap: 12px;
+        }
+        
+        .back-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: #5B5BFF;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+        }
+        
+        .page-title {
+            flex: 1;
+            font-size: 20px;
+            font-weight: 600;
+            color: #1a1a1a;
+            text-align: center;
+            margin-right: 56px;
+        }
+        
+        /* 步骤指示器 */
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            padding: 20px 0 32px;
+        }
+        
+        .step-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #e8e8ed;
+        }
+        
+        .step-dot.active {
+            background: #5B5BFF;
+            width: 28px;
+            border-radius: 5px;
+        }
+        
+        /* 题库选择标题 */
+        .section-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1a1a1a;
+            padding: 0 24px 24px;
+        }
+        
+        /* 题库卡片列表 */
+        .bank-list {
+            padding: 0 16px;
+        }
+        
+        .bank-card {
+            background: linear-gradient(135deg, #5B5BFF, #7C7CFF);
+            border-radius: 20px;
+            padding: 24px;
+            margin-bottom: 16px;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .bank-card .bank-icon {
+            width: 48px;
+            height: 48px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+            font-size: 24px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .bank-card .bank-name {
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        .bank-card .bank-desc {
+            font-size: 14px;
+            opacity: 0.9;
+            line-height: 1.5;
+        }
+        
+        .bank-card .bank-decoration {
+            position: absolute;
+            right: -10px;
+            bottom: -10px;
+            font-size: 100px;
+            opacity: 0.15;
+        }
+        
+        /* 底部按钮 */
+        .bottom-action {
+            position: absolute;
+            bottom: 30px;
+            left: 0;
+            right: 0;
+            padding: 0 24px;
+        }
+        
+        .btn-primary {
+            width: 100%;
+            padding: 18px;
+            border-radius: 28px;
+            background: #5B5BFF;
+            color: white;
+            border: none;
+            font-size: 17px;
+            font-weight: 600;
+        }
+        
+        /* 底部导航 */
+        .bottom-nav {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 70px;
+            background: #ffffff;
+            border-top: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding-bottom: 10px;
+        }
+        
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            font-size: 12px;
+            color: #999;
+        }
+        
+        .nav-item.active {
+            color: #5B5BFF;
+        }
+        
+        .nav-icon {
+            font-size: 22px;
+        }
+    </style>
+</head>
+<body>
+    <div class="phone-container">
+        <!-- 顶部导航 -->
+        <div class="top-nav">
+            <div class="back-btn">←</div>
+            <div class="page-title">斩杀计划</div>
+        </div>
+        
+        <!-- 步骤指示器 -->
+        <div class="step-indicator">
+            <div class="step-dot active"></div>
+            <div class="step-dot"></div>
+        </div>
+        
+        <!-- 标题 -->
+        <div class="section-title">选择题库</div>
+        
+        <!-- 题库列表 -->
+        <div class="bank-list">
+            <div class="bank-card">
+                <div class="bank-icon">🔥</div>
+                <div class="bank-name">LeetCode Hot 100</div>
+                <div class="bank-desc">LeetCode 热度 Top 100，面试高频必刷题</div>
+                <div class="bank-decoration">🔥</div>
+            </div>
+            
+            <div class="bank-card">
+                <div class="bank-icon">📚</div>
+                <div class="bank-name">代码随想录</div>
+                <div class="bank-desc">Carl 哥的经典算法刷题路线，系统性学习</div>
+                <div class="bank-decoration">📚</div>
+            </div>
+        </div>
+        
+        <!-- 底部按钮 -->
+        <div class="bottom-action">
+            <button class="btn-primary">下一步</button>
+        </div>
+        
+        <!-- 底部导航 -->
+        <div class="bottom-nav">
+            <div class="nav-item">
+                <div class="nav-icon">🏠</div>
+                <span>首页</span>
+            </div>
+            <div class="nav-item">
+                <div class="nav-icon">📖</div>
+                <span>题库</span>
+            </div>
+            <div class="nav-item">
+                <div class="nav-icon">📊</div>
+                <span>统计</span>
+            </div>
+            <div class="nav-item active">
+                <div class="nav-icon">👤</div>
+                <span>我的</span>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

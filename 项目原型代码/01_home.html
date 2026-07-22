@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>首页 - 斩杀计划</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f7;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        
+        .phone-container {
+            width: 375px;
+            min-height: 812px;
+            background: #ffffff;
+            position: relative;
+            padding-bottom: 80px;
+        }
+        
+        /* 头部进度区域 */
+        .header {
+            padding: 40px 24px 24px;
+        }
+        
+        .day-title {
+            font-size: 48px;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 4px;
+        }
+        
+        .day-title span {
+            font-size: 20px;
+            font-weight: 500;
+            color: #666;
+            margin-right: 8px;
+        }
+        
+        .plan-subtitle {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 16px;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background: #e8e8ed;
+            border-radius: 5px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .progress-fill {
+            width: 64%;
+            height: 100%;
+            background: linear-gradient(90deg, #5B5BFF, #4A4AFF);
+            border-radius: 5px;
+        }
+        
+        .progress-text {
+            position: absolute;
+            right: 0;
+            top: -24px;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        /* 打卡表区域 */
+        .checkin-section {
+            margin: 24px 16px;
+            background: #f0f9f0;
+            border-radius: 16px;
+            padding: 20px;
+            position: relative;
+        }
+        
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .section-title::before {
+            content: '';
+            width: 3px;
+            height: 18px;
+            background: #22c55e;
+            margin-right: 8px;
+            border-radius: 2px;
+        }
+        
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 12px;
+            max-width: 200px;
+        }
+        
+        .calendar-day {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            background: #ffffff;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .calendar-day.active {
+            background: #22c55e;
+            border-color: #22c55e;
+        }
+        
+        .calendar-day.half {
+            background: #86efac;
+            border-color: #86efac;
+        }
+        
+        .calendar-icon {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 100px;
+            height: 100px;
+        }
+        
+        /* 卡片区域 */
+        .cards-container {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            padding: 0 16px;
+        }
+        
+        .card {
+            border-radius: 16px;
+            padding: 20px;
+            position: relative;
+            min-height: 180px;
+        }
+        
+        .card-new {
+            background: #eef2ff;
+        }
+        
+        .card-review {
+            background: #fffbeb;
+        }
+        
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .card-title::before {
+            content: '';
+            width: 3px;
+            height: 18px;
+            margin-right: 8px;
+            border-radius: 2px;
+        }
+        
+        .card-new .card-title::before {
+            background: #2563eb;
+        }
+        
+        .card-review .card-title::before {
+            background: #f59e0b;
+        }
+        
+        .problem-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 0;
+        }
+        
+        .problem-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .checkbox {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #ccc;
+            border-radius: 4px;
+        }
+        
+        .problem-name {
+            font-size: 15px;
+            color: #333;
+        }
+        
+        .problem-tag {
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            margin-right: 8px;
+        }
+        
+        .tag-level1 {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+        
+        .tag-level2 {
+            background: #fef3c7;
+            color: #d97706;
+        }
+        
+        .btn-start {
+            background: #5B5BFF;
+            color: white;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+        
+        .card-illustration {
+            position: absolute;
+            bottom: 10px;
+            left: 20px;
+            width: 80px;
+            height: 80px;
+            opacity: 0.9;
+        }
+        
+        .card-review .card-illustration {
+            left: auto;
+            right: 20px;
+        }
+        
+        /* 底部导航 */
+        .bottom-nav {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 70px;
+            background: #ffffff;
+            border-top: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding-bottom: 10px;
+        }
+        
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            font-size: 12px;
+            color: #999;
+        }
+        
+        .nav-item.active {
+            color: #5B5BFF;
+        }
+        
+        .nav-icon {
+            font-size: 22px;
+        }
+    </style>
+</head>
+<body>
+    <div class="phone-container">
+        <!-- 头部 -->
+        <div class="header">
+            <div class="day-title"><span>Day</span>16</div>
+            <div class="plan-subtitle">Hot 100 斩杀计划进度表</div>
+            <div class="progress-bar">
+                <div class="progress-fill"></div>
+                <span class="progress-text">64%</span>
+            </div>
+        </div>
+        
+        <!-- 打卡表 -->
+        <div class="checkin-section">
+            <div class="section-title">打卡表</div>
+            <div class="calendar-grid">
+                <div class="calendar-day"></div>
+                <div class="calendar-day half"></div>
+                <div class="calendar-day half"></div>
+                <div class="calendar-day"></div>
+                <div class="calendar-day active"></div>
+                <div class="calendar-day"></div>
+                <div class="calendar-day half"></div>
+                <div class="calendar-day"></div>
+                <div class="calendar-day half"></div>
+                <div class="calendar-day active"></div>
+                <div class="calendar-day"></div>
+                <div class="calendar-day"></div>
+                <div class="calendar-day half"></div>
+                <div class="calendar-day half"></div>
+                <div class="calendar-day"></div>
+            </div>
+            <div class="calendar-icon">
+                <!-- 日历图标占位 -->
+                <svg viewBox="0 0 100 100" fill="none">
+                    <rect x="10" y="20" width="80" height="70" rx="10" fill="#fff" stroke="#ddd" stroke-width="2"/>
+                    <rect x="10" y="20" width="80" height="15" rx="10" fill="#86efac"/>
+                    <circle cx="25" cy="15" r="5" fill="#999"/>
+                    <circle cx="50" cy="15" r="5" fill="#999"/>
+                    <circle cx="75" cy="15" r="5" fill="#999"/>
+                    <rect x="20" y="42" width="12" height="10" rx="2" fill="#86efac"/>
+                    <rect x="36" y="42" width="12" height="10" rx="2" fill="#86efac"/>
+                    <rect x="52" y="42" width="12" height="10" rx="2" fill="#fff"/>
+                    <rect x="68" y="42" width="12" height="10" rx="2" fill="#22c55e"/>
+                    <rect x="20" y="56" width="12" height="10" rx="2" fill="#fff"/>
+                    <rect x="36" y="56" width="12" height="10" rx="2" fill="#86efac"/>
+                    <rect x="52" y="56" width="12" height="10" rx="2" fill="#fff"/>
+                    <rect x="68" y="56" width="12" height="10" rx="2" fill="#22c55e"/>
+                </svg>
+            </div>
+        </div>
+        
+        <!-- 卡片区域 -->
+        <div class="cards-container">
+            <div class="card card-new">
+                <div class="section-title" style="color: #2563eb;">今日新刷</div>
+                <div class="problem-item">
+                    <div class="problem-left">
+                        <div class="checkbox"></div>
+                        <span class="problem-name">两数之和</span>
+                    </div>
+                    <button class="btn-start">开刷</button>
+                </div>
+                <div class="problem-item">
+                    <div class="problem-left">
+                        <div class="checkbox"></div>
+                        <span class="problem-name">三数之和</span>
+                    </div>
+                    <button class="btn-start">开刷</button>
+                </div>
+                <div class="card-illustration">
+                    <!-- AI芯片图标 -->
+                    <svg viewBox="0 0 80 80" fill="none">
+                        <rect x="15" y="20" width="50" height="40" rx="6" fill="#5B5BFF"/>
+                        <rect x="22" y="27" width="36" height="26" rx="3" fill="#4A4AFF"/>
+                        <circle cx="30" cy="40" r="3" fill="#fff"/>
+                        <circle cx="40" cy="40" r="3" fill="#fff"/>
+                        <circle cx="50" cy="40" r="3" fill="#fff"/>
+                        <rect x="8" y="28" width="7" height="4" fill="#5B5BFF"/>
+                        <rect x="8" y="38" width="7" height="4" fill="#5B5BFF"/>
+                        <rect x="8" y="48" width="7" height="4" fill="#5B5BFF"/>
+                        <rect x="65" y="28" width="7" height="4" fill="#5B5BFF"/>
+                        <rect x="65" y="38" width="7" height="4" fill="#5B5BFF"/>
+                        <rect x="65" y="48" width="7" height="4" fill="#5B5BFF"/>
+                        <text x="40" y="18" text-anchor="middle" fill="#5B5BFF" font-size="14" font-weight="bold">AI</text>
+                    </svg>
+                </div>
+            </div>
+            
+            <div class="card card-review">
+                <div class="section-title" style="color: #d97706;">今日复刷</div>
+                <div class="problem-item">
+                    <div class="problem-left">
+                        <div class="checkbox"></div>
+                        <span class="problem-name">四数之和</span>
+                        <span class="problem-tag tag-level1">一连</span>
+                    </div>
+                    <button class="btn-start">开刷</button>
+                </div>
+                <div class="problem-item">
+                    <div class="problem-left">
+                        <div class="checkbox"></div>
+                        <span class="problem-name">五数之和</span>
+                        <span class="problem-tag tag-level2">二连</span>
+                    </div>
+                    <button class="btn-start">开刷</button>
+                </div>
+                <div class="card-illustration">
+                    <!-- 对话气泡图标 -->
+                    <svg viewBox="0 0 80 80" fill="none">
+                        <rect x="35" y="25" width="40" height="30" rx="8" fill="#5B5BFF"/>
+                        <rect x="5" y="40" width="35" height="25" rx="8" fill="#fff" stroke="#ddd"/>
+                        <circle cx="45" cy="37" r="2" fill="#fff"/>
+                        <circle cx="52" cy="37" r="2" fill="#fff"/>
+                        <circle cx="59" cy="37" r="2" fill="#fff"/>
+                        <rect x="45" y="42" width="20" height="3" rx="1.5" fill="#fff"/>
+                        <rect x="12" y="48" width="20" height="3" rx="1.5" fill="#999"/>
+                        <rect x="12" y="54" width="15" height="3" rx="1.5" fill="#999"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 底部导航 -->
+        <div class="bottom-nav">
+            <div class="nav-item active">
+                <div class="nav-icon">🏠</div>
+                <span>首页</span>
+            </div>
+            <div class="nav-item">
+                <div class="nav-icon">📖</div>
+                <span>题库</span>
+            </div>
+            <div class="nav-item">
+                <div class="nav-icon">📊</div>
+                <span>统计</span>
+            </div>
+            <div class="nav-item">
+                <div class="nav-icon">👤</div>
+                <span>我的</span>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

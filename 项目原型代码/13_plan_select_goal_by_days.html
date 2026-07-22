@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>选择目标（根据天数） - 斩杀计划</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f7;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        
+        .phone-container {
+            width: 375px;
+            min-height: 812px;
+            background: #ffffff;
+            position: relative;
+            padding-bottom: 80px;
+        }
+        
+        /* 顶部导航 */
+        .top-nav {
+            display: flex;
+            align-items: center;
+            padding: 50px 16px 16px;
+            gap: 12px;
+        }
+        
+        .back-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: #5B5BFF;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+        }
+        
+        .page-title {
+            flex: 1;
+            font-size: 20px;
+            font-weight: 600;
+            color: #1a1a1a;
+            text-align: center;
+            margin-right: 56px;
+        }
+        
+        /* 步骤指示器 */
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            padding: 20px 0 32px;
+        }
+        
+        .step-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #e8e8ed;
+        }
+        
+        .step-dot.active {
+            background: #5B5BFF;
+            width: 28px;
+            border-radius: 5px;
+        }
+        
+        /* 标题 */
+        .section-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1a1a1a;
+            padding: 0 24px 24px;
+        }
+        
+        /* 目标选项列表 */
+        .goal-list {
+            padding: 0 16px;
+        }
+        
+        .goal-card {
+            border-radius: 20px;
+            padding: 24px;
+            margin-bottom: 16px;
+            position: relative;
+        }
+        
+        .goal-card.selected {
+            background: linear-gradient(135deg, #5B5BFF, #7C7CFF);
+            color: white;
+        }
+        
+        .goal-card.unselected {
+            background: #ffffff;
+            border: 2px solid #5B5BFF;
+        }
+        
+        .goal-card .goal-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+            font-size: 24px;
+        }
+        
+        .goal-card.selected .goal-icon {
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+        }
+        
+        .goal-card.unselected .goal-icon {
+            background: #f0f0ff;
+        }
+        
+        .goal-card .goal-name {
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        .goal-card.unselected .goal-name {
+            color: #1a1a1a;
+        }
+        
+        .goal-card .goal-desc {
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        .goal-card.unselected .goal-desc {
+            color: #666;
+        }
+        
+        .goal-card.selected .goal-desc {
+            opacity: 0.9;
+        }
+        
+        /* 选中状态的输入框 */
+        .input-group {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .input-label {
+            font-size: 14px;
+            margin-bottom: 12px;
+            opacity: 0.9;
+        }
+        
+        .input-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .input-field {
+            flex: 1;
+            padding: 14px 16px;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            color: white;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+        
+        .input-field::placeholder {
+            color: rgba(255,255,255,0.6);
+        }
+        
+        .input-unit {
+            font-size: 16px;
+            font-weight: 500;
+        }
+        
+        /* 底部按钮 */
+        .bottom-action {
+            position: absolute;
+            bottom: 30px;
+            left: 0;
+            right: 0;
+            padding: 0 24px;
+        }
+        
+        .btn-primary {
+            width: 100%;
+            padding: 18px;
+            border-radius: 28px;
+            background: #5B5BFF;
+            color: white;
+            border: none;
+            font-size: 17px;
+            font-weight: 600;
+        }
+        
+        /* 底部导航 */
+        .bottom-nav {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 70px;
+            background: #ffffff;
+            border-top: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding-bottom: 10px;
+        }
+        
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            font-size: 12px;
+            color: #999;
+        }
+        
+        .nav-item.active {
+            color: #5B5BFF;
+        }
+        
+        .nav-icon {
+            font-size: 22px;
+        }
+    </style>
+</head>
+<body>
+    <div class="phone-container">
+        <!-- 顶部导航 -->
+        <div class="top-nav">
+            <div class="back-btn">←</div>
+            <div class="page-title">斩杀计划</div>
+        </div>
+        
+        <!-- 步骤指示器 -->
+        <div class="step-indicator">
+            <div class="step-dot"></div>
+            <div class="step-dot active"></div>
+        </div>
+        
+        <!-- 标题 -->
+        <div class="section-title">选择目标</div>
+        
+        <!-- 目标选项列表 -->
+        <div class="goal-list">
+            <!-- 选中：根据天数 -->
+            <div class="goal-card selected">
+                <div class="goal-icon">📅</div>
+                <div class="goal-name">根据天数</div>
+                <div class="goal-desc">设定目标天数，系统自动分配每日任务量</div>
+                
+                <div class="input-group">
+                    <div class="input-label">目标天数</div>
+                    <div class="input-wrapper">
+                        <input type="text" class="input-field" value="50">
+                        <span class="input-unit">天</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 未选中：根据刷题数量 -->
+            <div class="goal-card unselected">
+                <div class="goal-icon">📊</div>
+                <div class="goal-name">根据刷题数量</div>
+                <div class="goal-desc">设定每日新刷题目数量，按节奏稳步推进</div>
+            </div>
+        </div>
+        
+        <!-- 底部按钮 -->
+        <div class="bottom-action">
+            <button class="btn-primary">开始斩杀</button>
+        </div>
+        
+        <!-- 底部导航 -->
+        <div class="bottom-nav">
+            <div class="nav-item">
+                <div class="nav-icon">🏠</div>
+                <span>首页</span>
+            </div>
+            <div class="nav-item">
+                <div class="nav-icon">📖</div>
+                <span>题库</span>
+            </div>
+            <div class="nav-item">
+                <div class="nav-icon">📊</div>
+                <span>统计</span>
+            </div>
+            <div class="nav-item active">
+                <div class="nav-icon">👤</div>
+                <span>我的</span>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

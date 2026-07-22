@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>提交刷题记录 - 斩杀计划</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f7;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        
+        .phone-container {
+            width: 375px;
+            min-height: 812px;
+            background: #ffffff;
+            position: relative;
+            padding-bottom: 80px;
+        }
+        
+        /* 顶部导航 */
+        .top-nav {
+            display: flex;
+            align-items: center;
+            padding: 50px 16px 16px;
+            gap: 12px;
+        }
+        
+        .back-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: #5B5BFF;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+        }
+        
+        .title-bar {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f5f5f7;
+            border-radius: 24px;
+            padding: 10px 16px;
+            font-size: 15px;
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .title-bar .arrow {
+            margin: 0 8px;
+            color: #999;
+        }
+        
+        .new-btn {
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: 1.5px solid #5B5BFF;
+            color: #5B5BFF;
+            font-size: 14px;
+            font-weight: 500;
+            background: #fff;
+        }
+        
+        /* 题目卡片 */
+        .problem-card {
+            margin: 16px;
+            background: linear-gradient(135deg, #5B5BFF, #7C7CFF);
+            border-radius: 20px;
+            padding: 20px;
+            color: white;
+        }
+        
+        .problem-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+        
+        .problem-tags {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        
+        .problem-tag {
+            padding: 4px 12px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 12px;
+            font-size: 13px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .problem-desc {
+            font-size: 14px;
+            line-height: 1.6;
+            opacity: 0.95;
+        }
+        
+        /* 表单区域 */
+        .form-section {
+            padding: 0 24px;
+            margin-bottom: 24px;
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        
+        .form-item {
+            flex: 1;
+        }
+        
+        .form-label {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 12px;
+        }
+        
+        .select-box {
+            width: 100%;
+            padding: 14px 16px;
+            background: #fafafa;
+            border: 1px solid #e8e8ed;
+            border-radius: 16px;
+            font-size: 15px;
+            color: #333;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .select-box::after {
+            content: '▾';
+            color: #999;
+            font-size: 12px;
+        }
+        
+        /* 代码区域 */
+        .code-section {
+            padding: 0 24px;
+            margin-bottom: 20px;
+        }
+        
+        .code-label {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 12px;
+        }
+        
+        .code-box {
+            background: #fafafa;
+            border-radius: 16px;
+            padding: 16px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 12px;
+            line-height: 1.6;
+            color: #333;
+            overflow-x: auto;
+        }
+        
+        .code-box .keyword {
+            color: #5B5BFF;
+        }
+        
+        .code-box .comment {
+            color: #999;
+        }
+        
+        /* 总结区域 */
+        .summary-section {
+            padding: 0 24px;
+            margin-bottom: 24px;
+            position: relative;
+        }
+        
+        .summary-label {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 12px;
+        }
+        
+        .summary-box {
+            background: #fafafa;
+            border-radius: 16px;
+            padding: 16px;
+            font-size: 14px;
+            line-height: 1.6;
+            color: #666;
+            min-height: 80px;
+        }
+        
+        .ai-summary-btn {
+            position: absolute;
+            right: 24px;
+            bottom: 8px;
+            padding: 8px 16px;
+            background: #5B5BFF;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+        
+        /* 提交按钮 */
+        .submit-section {
+            padding: 0 24px;
+        }
+        
+        .btn-submit {
+            width: 100%;
+            padding: 16px;
+            border-radius: 28px;
+            background: #5B5BFF;
+            color: white;
+            border: none;
+            font-size: 17px;
+            font-weight: 600;
+        }
+        
+        /* 底部导航 */
+        .bottom-nav {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 70px;
+            background: #ffffff;
+            border-top: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding-bottom: 10px;
+        }
+        
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            font-size: 12px;
+            color: #999;
+        }
+        
+        .nav-item.active {
+            color: #5B5BFF;
+        }
+        
+        .nav-icon {
+            font-size: 22px;
+        }
+    </style>
+</head>
+<body>
+    <div class="phone-container">
+        <!-- 顶部导航 -->
+        <div class="top-nav">
+            <div class="back-btn">←</div>
+            <div class="title-bar">
+                LeetCode Hot 100
+                <span class="arrow">〈 〉</span>
+            </div>
+            <button class="new-btn">斩</button>
+        </div>
+        
+        <!-- 题目卡片 -->
+        <div class="problem-card">
+            <div class="problem-title">两数之和</div>
+            <div class="problem-tags">
+                <span class="problem-tag">一连</span>
+                <span class="problem-tag">简单</span>
+            </div>
+            <div class="problem-desc">
+                给定一个整数数组 nums 和一个整数目标值 target，请你在该数组中找出 和为目标值 target 的那 两个 整数，并返回它们的数组下标。你可以假设每种输入只会对应一个答案，并且你不能使用两次相同的元素。你可以按任意顺序返回答案。
+            </div>
+        </div>
+        
+        <!-- 表单区域 -->
+        <div class="form-section">
+            <div class="form-row">
+                <div class="form-item">
+                    <div class="form-label">刷题状态</div>
+                    <div class="select-box">通过</div>
+                </div>
+                <div class="form-item">
+                    <div class="form-label">耗时</div>
+                    <div class="select-box">&lt;5分钟</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 代码区域 -->
+        <div class="code-section">
+            <div class="code-label">代码</div>
+            <div class="code-box">
+<span class="keyword">class</span> Solution(object):
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">def</span> lengthOfLongestSubstring(self, s):
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:type s: str
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:rtype: int
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment"># 暴力枚举、滑动窗口</span>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;length=max=0
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;i=length=0
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">return</span> 0
+            </div>
+        </div>
+        
+        <!-- 总结区域 -->
+        <div class="summary-section">
+            <div class="summary-label">总结</div>
+            <div class="summary-box">
+                提交触发语法报错，因括号、标点、格式等基础书写失误，代码无法编译运行。逻辑无问题，后续需优先自查语法格式，杜绝低级错误。
+            </div>
+            <button class="ai-summary-btn">AI总结</button>
+        </div>
+        
+        <!-- 提交按钮 -->
+        <div class="submit-section">
+            <button class="btn-submit">提交</button>
+        </div>
+        
+        <!-- 底部导航 -->
+        <div class="bottom-nav">
+            <div class="nav-item">
+                <div class="nav-icon">🏠</div>
+                <span>首页</span>
+            </div>
+            <div class="nav-item active">
+                <div class="nav-icon">📖</div>
+                <span>题库</span>
+            </div>
+            <div class="nav-item">
+                <div class="nav-icon">📊</div>
+                <span>统计</span>
+            </div>
+            <div class="nav-item">
+                <div class="nav-icon">👤</div>
+                <span>我的</span>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
