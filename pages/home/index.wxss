@@ -1,12 +1,12 @@
 .hero { padding: 42rpx 36rpx; color: #fff; background: linear-gradient(135deg, #5B5BFF, #8585FF); }
 .eyebrow { display: block; opacity: .78; font-size: 24rpx; }
-.hero-title { display: block; margin-top: 18rpx; font-size: 48rpx; line-height: 1.28; font-weight: 700; }
-.hero-copy { display: block; margin: 18rpx 0 30rpx; font-size: 26rpx; opacity: .86; }
+.hero-plan-row { display:flex; align-items:center; justify-content:space-between; gap:24rpx; }.hero-plan-main { flex:1; min-width:0; }.hero-title { display: block; margin-top: 18rpx; font-size: 48rpx; line-height: 1.28; font-weight: 700; }
+.hero-copy { display: block; margin: 18rpx 0 30rpx; font-size: 26rpx; opacity: .86; }.streak { display:flex; flex-direction:column; align-items:center; justify-content:center; flex:none; min-width:118rpx; padding:12rpx 10rpx; border-radius:22rpx; background:rgba(255,255,255,.16); }.streak-value { display:block; font-size:58rpx; font-weight:800; line-height:1; }.streak-label { display:block; margin-top:8rpx; font-size:20rpx; opacity:.9; }
 .hero-button { margin: 0; padding: 0 30rpx; border-radius: 40rpx; color: #5B5BFF; background: #fff; font-size: 26rpx; font-weight: 600; }
 .section-head { display: flex; align-items: center; justify-content: space-between; }
 .section-head .section-title { margin-bottom: 20rpx; }
 .task-list { display: flex; flex-direction: column; gap: 16rpx; }
-.task { display: flex; align-items: center; padding: 24rpx; }
+.task { display: flex; align-items: center; padding: 24rpx; }.task-completed { opacity:.62; background:#f1f2f5; }
 .task-index { width: 48rpx; height: 48rpx; border-radius: 50%; text-align: center; line-height: 48rpx; color: #5B5BFF; background: #eeeeff; font-weight: 700; }
-.task-info { flex: 1; margin-left: 20rpx; }.task-title, .task-meta { display:block; }.task-title { font-size: 30rpx; font-weight: 600; }.task-meta { margin-top: 8rpx; font-size: 24rpx; color:#8d93a5; }.arrow { font-size:48rpx; color:#aeb3c2; }
+.task-info { flex: 1; margin-left: 20rpx; }.task-title, .task-meta { display:block; }.task-title { font-size: 30rpx; font-weight: 600; }.task-meta { margin-top: 8rpx; font-size: 24rpx; color:#8d93a5; }.task-completed .task-index { color:#fff; background:#5b5bff; }.review-task .task-index { width:auto; min-width:62rpx; padding:0 8rpx; box-sizing:border-box; color:#5b5bff; background:#eeeeff; font-size:21rpx; }.arrow { font-size:48rpx; color:#aeb3c2; }
 .empty { display:flex; align-items:center; gap:16rpx; margin-top:20rpx; padding:34rpx 28rpx; color:#697086; font-size:26rpx; }.empty-icon { color:#22c55e; font-size:34rpx; font-weight:700; }

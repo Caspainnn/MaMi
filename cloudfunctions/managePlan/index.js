@@ -197,6 +197,42 @@ async function getPlanProblems(planId, start, count) {
   return relations
 }
 
+async function getAllPlanProblems(planId) {
+  const relations = []
+  let offset = 0
+  while (true) {
+    const result = await db.collection('plan_problems').where({ planId }).orderBy('planOrder', 'asc').skip(offset).limit(PAGE_SIZE).get()
+    relations.push(...result.data)
+    if (result.data.length < PAGE_SIZE) return relations
+    offset += result.data.length
+  }
+}
+
+async function getDueUserProblems(userId, planId) {
+  const due = []
+  let offset = 0
+  while (true) {
+    const result = await db.collection('user_problems').where({
+      userId, isSlashed: false, nextReviewAt: db.command.lte(new Date()),
+    }).skip(offset).limit(PAGE_SIZE).get()
+    due.push(...result.data.filter((item) => item.planId === planId))
+    if (result.data.length < PAGE_SIZE) return due
+    offset += result.data.length
+  }
+}
+
+async function getCheckinStreak(userId) {
+  const result = await db.collection('daily_situations').where({ userId }).orderBy('date', 'desc').limit(100).get()
+  const checkedDates = new Set(result.data.filter((item) => item.totalSubmissionCount > 0).map((item) => item.date))
+  let streak = 0
+  const cursor = new Date(`${getChinaDate()}T00:00:00+08:00`)
+  while (checkedDates.has(getChinaDate(cursor))) {
+    streak += 1
+    cursor.setDate(cursor.getDate() - 1)
+  }
+  return streak
+}
+
 async function getTodayTasks() {
   const user = await getUser()
   const planResult = await db.collection('study_plans').where({ userId: user._id, status: 'active' }).limit(1).get()
@@ -208,17 +244,54 @@ async function getTodayTasks() {
   const dailyNewCount = plan.estimatedDailyNewCount || 1
   const start = dayOffset * dailyNewCount
   const relations = await getPlanProblems(plan._id, start, dailyNewCount)
-  const records = await getProblems(relations.map((item) => item.problemId))
+  const userProblemResult = relations.length ? await db.collection('user_problems')
+    .where({ userId: user._id, problemId: db.command.in(relations.map((item) => item.problemId)) })
+    .get() : { data: [] }
+  const userProblemMap = userProblemResult.data.reduce((map, item) => { map[item.problemId] = item; return map }, {})
+  const slashedProblemIds = new Set(userProblemResult.data.filter((item) => item.isSlashed).map((item) => item.problemId))
+  const availableRelations = relations.filter((item) => !slashedProblemIds.has(item.problemId))
+  const [records, allPlanRelations, dueUserProblems, streak] = await Promise.all([
+    getProblems(availableRelations.map((item) => item.problemId)),
+    getAllPlanProblems(plan._id),
+    getDueUserProblems(user._id, plan._id),
+    getCheckinStreak(user._id),
+  ])
   const recordMap = records.reduce((map, item) => {
     map[item._id] = item
     return map
   }, {})
-  const newTasks = relations.map((relation) => recordMap[relation.problemId]).filter(Boolean).map((problem) => ({
+  const newTasks = availableRelations.map((relation) => recordMap[relation.problemId]).filter(Boolean).map((problem) => ({
     id: problem._id,
     title: problem.title,
     category: problem.category,
     difficulty: problem.difficulty,
+    isCompletedToday: Boolean(userProblemMap[problem._id] && userProblemMap[problem._id].lastPracticedAt && getChinaDate(new Date(userProblemMap[problem._id].lastPracticedAt)) === getChinaDate()),
   }))
+  const planOrderMap = allPlanRelations.reduce((map, item) => { map[item.problemId] = item.planOrder; return map }, {})
+  const todayStart = new Date(`${getChinaDate()}T00:00:00+08:00`).getTime()
+  const dueProblemIds = dueUserProblems.map((item) => item.problemId)
+  const dueProblems = await getProblems(dueProblemIds)
+  const dueProblemMap = dueProblems.reduce((map, item) => { map[item._id] = item; return map }, {})
+  const reviewTasks = dueUserProblems
+    .map((userProblem) => ({ userProblem, problem: dueProblemMap[userProblem.problemId] }))
+    .filter((item) => item.problem)
+    .sort((a, b) => {
+      const aTime = new Date(a.userProblem.nextReviewAt).getTime()
+      const bTime = new Date(b.userProblem.nextReviewAt).getTime()
+      const aOverdue = aTime < todayStart ? 0 : 1
+      const bOverdue = bTime < todayStart ? 0 : 1
+      if (aOverdue !== bOverdue) return aOverdue - bOverdue
+      if (aTime !== bTime) return aTime - bTime
+      return (planOrderMap[a.problem._id] || 0) - (planOrderMap[b.problem._id] || 0)
+    })
+    .map(({ userProblem, problem }) => ({
+      id: problem._id,
+      title: problem.title,
+      category: problem.category,
+      difficulty: problem.difficulty,
+      level: userProblem.level || 'Lv0',
+      isOverdue: new Date(userProblem.nextReviewAt).getTime() < todayStart,
+    }))
 
   return {
     success: true,
@@ -228,10 +301,10 @@ async function getTodayTasks() {
       questionBankCode: plan.questionBankCode,
       estimatedFinishDate: plan.estimatedFinishDate,
       dayOffset,
+      streak,
     },
     newTasks,
-    // 用户题目状态与到期时间在阶段 3 创建；当前没有复刷数据时保持真实空态。
-    reviewTasks: [],
+    reviewTasks,
   }
 }
 

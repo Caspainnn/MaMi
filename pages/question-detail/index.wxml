@@ -1,21 +1,16 @@
 <view class="detail-page" wx:if="{{problem}}">
   <view class="top-nav">
-    <view class="bank-switcher">
-      <text>{{bankName}}</text>
-    </view>
+    <view class="bank-switcher"><text>{{bankName}}</text></view>
     <view class="problem-switcher">
       <view class="switch-btn {{!canPrev ? 'switch-disabled' : ''}}" bindtap="previousProblem">‹</view>
       <view class="switch-btn {{!canNext ? 'switch-disabled' : ''}}" bindtap="nextProblem">›</view>
     </view>
-    <view class="slash-btn" bindtap="slayProblem">斩</view>
+    <view class="slash-btn" bindtap="slayProblem">斩杀</view>
   </view>
 
   <view class="problem-header">
     <text class="problem-title">{{problem.title}}</text>
-    <view class="tags-row">
-      <text class="tag tag-stage">一破</text>
-      <text class="tag tag-difficulty">{{problem.difficulty}}</text>
-    </view>
+    <view class="tags-row"><text class="tag tag-stage">一刷</text><text class="tag tag-difficulty">{{problem.difficulty}}</text></view>
     <view class="tabs">
       <view class="tab {{activeTab === 'description' ? 'tab-active' : ''}}" bindtap="selectTab" data-tab="description">题目描述</view>
       <view class="tab {{activeTab === 'records' ? 'tab-active' : ''}}" bindtap="selectTab" data-tab="records">提交记录</view>
@@ -25,19 +20,39 @@
   <view class="problem-description" wx:if="{{activeTab === 'description'}}">
     <text>{{problem.summary}}</text>
     <text class="description-copy">题目来源于当前计划绑定题库。完成外部平台练习后，可返回码秘记录本次回忆表现与耗时。</text>
-    <view class="tag-list">
-      <text class="inline-tag" wx:for="{{problem.tags}}" wx:key="*this">{{item}}</text>
+    <view class="tag-list"><text class="inline-tag" wx:for="{{problem.tags}}" wx:key="*this">{{item}}</text></view>
+  </view>
+
+  <view class="records-panel" wx:else>
+    <view wx:if="{{expandedRecordId}}" class="record-list record-expanded-list">
+      <block wx:for="{{records}}" wx:key="id">
+        <view wx:if="{{item.id === expandedRecordId}}" class="record-card record-card-{{item.recallType}} record-card-expanded">
+          <view class="record-head"><text class="record-status">{{item.recallResult}}</text><text class="record-date">{{item.submittedAt}}</text></view>
+          <text class="record-summary record-summary-full">{{item.summary || '未提交'}}</text>
+          <view class="code-preview">
+            <view class="code-preview-head"><text>代码</text><text>{{item.duration}}</text></view>
+            <text class="code-content">{{item.code || '未提交'}}</text>
+          </view>
+        </view>
+      </block>
+      <view class="collapse-link" bindtap="collapseRecords">收起详情</view>
+      <text class="other-records-title" wx:if="{{records.length > 1}}">其他历史记录</text>
+      <block wx:for="{{records}}" wx:key="id">
+        <view wx:if="{{item.id !== expandedRecordId}}" class="record-card record-card-{{item.recallType}} record-card-mini" bindtap="expandRecord" data-id="{{item.id}}">
+          <view class="record-head"><text class="record-status">{{item.recallResult}}</text><text class="record-date">{{item.submittedAt}}</text></view>
+        </view>
+      </block>
     </view>
+
+    <view wx:else class="record-list">
+      <view class="record-card record-card-{{item.recallType}}" wx:for="{{records}}" wx:key="id" bindtap="expandRecord" data-id="{{item.id}}">
+        <view class="record-head"><text class="record-status">{{item.recallResult}}</text><text class="record-date">{{item.submittedAt}}</text></view>
+        <text class="record-summary">{{item.summary || '未提交'}}</text>
+      </view>
+    </view>
+
+    <view class="records-empty" wx:if="{{!records.length && !recordsLoading}}"><text class="records-icon">○</text><text>暂无提交记录</text><text class="records-hint">完成练习后，记录会显示在这里。</text></view>
   </view>
 
-  <view class="records-empty" wx:else>
-    <text class="records-icon">○</text>
-    <text>暂无提交记录</text>
-    <text class="records-hint">完成练习后，记录会显示在这里。</text>
-  </view>
-
-  <view class="bottom-actions">
-    <button class="primary-action" bindtap="copyLink">复制题目链接</button>
-    <button class="secondary-action" bindtap="startPractice">提交刷题记录</button>
-  </view>
+  <view class="bottom-actions"><button class="primary-action" bindtap="copyLink">复制题目链接</button><button class="secondary-action" bindtap="startPractice">提交刷题记录</button></view>
 </view>

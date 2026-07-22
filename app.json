@@ -6,7 +6,8 @@
     "pages/stats/index",
     "pages/profile/index",
     "pages/plan-select-bank/index",
-    "pages/plan-select-goal/index"
+    "pages/plan-select-goal/index",
+    "pages/practice-submit/index"
   ],
   "window": {
     "navigationBarTitleText": "码秘 MaMi",
