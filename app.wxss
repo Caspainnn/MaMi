@@ -12,7 +12,7 @@ view, text, button, input {
 
 .page {
   min-height: 100vh;
-  padding: 28rpx 28rpx 48rpx;
+  padding: 28rpx 28rpx 190rpx;
 }
 
 .card {

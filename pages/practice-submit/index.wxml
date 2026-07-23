@@ -1,1 +1,24 @@
-<view class="page" wx:if="{{problem}}"><view class="problem card"><text class="problem-title">{{problem.title}}</text><text class="problem-meta">{{problem.category}} · {{problem.difficulty}}</text></view><view class="section"><text class="section-title">刷题情况</text><view class="option {{recallResult === item.value ? 'selected' : ''}}" wx:for="{{recallOptions}}" wx:key="value" bindtap="chooseRecall" data-value="{{item.value}}"><text class="option-label">{{item.label}}</text><text class="option-hint">{{item.hint}}</text></view></view><view class="section"><text class="section-title">本次耗时</text><view class="duration-list"><view class="duration {{duration === item.value ? 'selected' : ''}}" wx:for="{{durationOptions}}" wx:key="value" bindtap="chooseDuration" data-value="{{item.value}}">{{item.label}}</view></view></view><view class="section"><view class="field-head"><text class="section-title">代码（可选）</text><text>{{code.length}} / 12000</text></view><textarea maxlength="12000" placeholder="粘贴本次代码或关键思路" value="{{code}}" bindinput="updateCode" /></view><view class="section"><view class="field-head"><text class="section-title">总结（可选）</text><text>{{summary.length}} / 2000</text></view><textarea maxlength="2000" placeholder="记录易错点、收获或待复习内容" value="{{summary}}" bindinput="updateSummary" /></view><button class="submit" loading="{{submitting}}" disabled="{{submitting}}" bindtap="submit">保存刷题记录</button><view class="success-mask" wx:if="{{successState}}"><view class="success-modal"><text class="success-emoji">✦</text><text class="success-title">{{successState.successTitle}}</text><text class="success-caption">掌握等级变化</text><view class="level-change"><text>{{successState.levelBefore}}</text><text class="level-arrow">→</text><text class="level-after">{{successState.levelAfter}}</text></view><text class="success-hint" wx:if="{{successState.upgradeBlocked}}">今日已提升过等级，本次记录已保存</text><text class="success-hint" wx:else>下次复习：{{successState.nextReviewText}}</text><button class="success-button" bindtap="closeSuccessModal">继续加油</button></view></view></view>
+<view class="page" wx:if="{{problem}}">
+  <view class="problem card">
+    <text class="problem-title">{{problem.title}}</text>
+    <text class="problem-meta">{{problem.category}} · {{problem.difficulty}}</text>
+  </view>
+  <view class="section">
+    <text class="section-title">刷题情况</text>
+    <view class="option {{recallResult === item.value ? 'selected' : ''}}" wx:for="{{recallOptions}}" wx:key="value" bindtap="chooseRecall" data-value="{{item.value}}">
+      <text class="option-label">{{item.label}}</text><text class="option-hint">{{item.hint}}</text>
+    </view>
+  </view>
+  <view class="section">
+    <text class="section-title">本次耗时</text>
+    <view class="duration-list"><view class="duration {{duration === item.value ? 'selected' : ''}}" wx:for="{{durationOptions}}" wx:key="value" bindtap="chooseDuration" data-value="{{item.value}}">{{item.label}}</view></view>
+  </view>
+  <view class="section"><view class="field-head"><text class="section-title">代码（可选）</text><text>{{code.length}} / 12000</text></view><textarea maxlength="12000" placeholder="粘贴本次代码或关键思路" value="{{code}}" bindinput="updateCode" /></view>
+  <view class="section summary-section">
+    <view class="field-head"><text class="section-title">总结（可选）</text><text>{{summary.length}} / 2000</text></view>
+    <textarea maxlength="2000" placeholder="记录易错点、收获或待复习内容" value="{{summary}}" bindinput="updateSummary" />
+    <view class="ai-generate {{aiGenerating ? 'ai-generating' : ''}}" bindtap="generateSummary"><text>{{aiGenerating ? '生成中' : '✦ AI总结'}}</text></view>
+  </view>
+  <button class="submit" loading="{{submitting}}" disabled="{{submitting}}" bindtap="submit">保存刷题记录</button>
+  <view class="success-mask" wx:if="{{successState}}"><view class="success-modal"><text class="success-emoji">✦</text><text class="success-title">{{successState.successTitle}}</text><text class="success-caption">掌握等级变化</text><view class="level-change"><text>{{successState.levelBefore}}</text><text class="level-arrow">→</text><text class="level-after">{{successState.levelAfter}}</text></view><text class="success-hint" wx:if="{{successState.upgradeBlocked}}">今日已提升过等级，本次记录已保存</text><text class="success-hint" wx:else>下次复习：{{successState.nextReviewText}}</text><button class="success-button" bindtap="closeSuccessModal">继续加油</button></view></view>
+</view>

@@ -7,6 +7,7 @@ App({
       streak: 0,
       totalPractices: 0,
     },
+    loginStatus: { available: false, loggedIn: false },
   },
   onLaunch() {
     if (!wx.cloud) {
@@ -19,13 +20,15 @@ App({
       traceUser: true,
     })
 
-    this.globalData.loginPromise = wx.cloud.callFunction({ name: 'login' })
+    this.globalData.loginPromise = wx.cloud.callFunction({ name: 'login', data: { action: 'status' } })
       .then(({ result }) => {
         if (result && result.needsSetup) {
           console.warn(result.message)
+          this.globalData.loginStatus = { available: false, loggedIn: false }
           return this.globalData.user
         }
-        if (result && result.user) {
+        this.globalData.loginStatus = { available: true, loggedIn: Boolean(result && result.loggedIn) }
+        if (result && result.loggedIn && result.user) {
           this.globalData.user = result.user
         }
         return this.globalData.user
@@ -33,6 +36,7 @@ App({
       .catch((error) => {
         // 云函数未部署或网络异常时保留演示身份，保证阶段 1 页面可预览。
         console.warn('云登录暂不可用，已使用演示身份', error)
+        this.globalData.loginStatus = { available: false, loggedIn: false }
         return this.globalData.user
       })
   },

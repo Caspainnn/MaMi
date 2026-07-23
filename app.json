@@ -4,6 +4,7 @@
     "pages/question-bank/index",
     "pages/question-detail/index",
     "pages/stats/index",
+    "pages/experience/index",
     "pages/profile/index",
     "pages/plan-select-bank/index",
     "pages/plan-select-goal/index",
@@ -21,10 +22,12 @@
     "selectedColor": "#5B5BFF",
     "backgroundColor": "#FFFFFF",
     "borderStyle": "white",
+    "custom": true,
     "list": [
       { "pagePath": "pages/home/index", "text": "首页" },
       { "pagePath": "pages/question-bank/index", "text": "题库" },
       { "pagePath": "pages/stats/index", "text": "统计" },
+      { "pagePath": "pages/experience/index", "text": "经验" },
       { "pagePath": "pages/profile/index", "text": "我的" }
     ]
   },

@@ -1,16 +1,18 @@
-<view class="detail-page" wx:if="{{problem}}">
+<view class="detail-page detail-loading" wx:if="{{loading}}"><view class="loading-spinner"></view><text>正在加载题目...</text></view>
+<view class="detail-page detail-loading" wx:elif="{{loadError}}"><text class="load-error">题目加载失败</text><button class="retry-button" bindtap="retryLoad">重新加载</button></view>
+<view class="detail-page" wx:else>
   <view class="top-nav">
     <view class="bank-switcher"><text>{{bankName}}</text></view>
     <view class="problem-switcher">
-      <view class="switch-btn {{!canPrev ? 'switch-disabled' : ''}}" bindtap="previousProblem">‹</view>
-      <view class="switch-btn {{!canNext ? 'switch-disabled' : ''}}" bindtap="nextProblem">›</view>
+      <view class="switch-btn {{!canPrev ? 'switch-disabled' : ''}}" bindtap="previousProblem"><text class="switch-arrow">‹</text></view>
+      <view class="switch-btn {{!canNext ? 'switch-disabled' : ''}}" bindtap="nextProblem"><text class="switch-arrow">›</text></view>
     </view>
     <view class="slash-btn" bindtap="slayProblem">斩杀</view>
   </view>
 
   <view class="problem-header">
     <text class="problem-title">{{problem.title}}</text>
-    <view class="tags-row"><text class="tag tag-stage">一刷</text><text class="tag tag-difficulty">{{problem.difficulty}}</text></view>
+    <view class="tags-row"><text class="tag tag-stage">{{problem.level || 'Lv0'}}</text><text class="tag tag-difficulty">{{problem.difficulty}}</text></view>
     <view class="tabs">
       <view class="tab {{activeTab === 'description' ? 'tab-active' : ''}}" bindtap="selectTab" data-tab="description">题目描述</view>
       <view class="tab {{activeTab === 'records' ? 'tab-active' : ''}}" bindtap="selectTab" data-tab="records">提交记录</view>
@@ -19,7 +21,7 @@
 
   <view class="problem-description" wx:if="{{activeTab === 'description'}}">
     <text>{{problem.summary}}</text>
-    <text class="description-copy">题目来源于当前计划绑定题库。完成外部平台练习后，可返回码秘记录本次回忆表现与耗时。</text>
+    <text class="description-copy">完成外部练习后，在码秘记录本次表现。</text>
     <view class="tag-list"><text class="inline-tag" wx:for="{{problem.tags}}" wx:key="*this">{{item}}</text></view>
   </view>
 

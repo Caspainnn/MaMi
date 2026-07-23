@@ -15,7 +15,11 @@ const collections = [
   'user_problems',
   'practice_records',
   'ai_analyses',
+  'ai_usage',
   'daily_situations',
+  'experience_libraries',
+  'experience_refinement_logs',
+  'user_feedback',
 ]
 
 const indexes = [
@@ -27,12 +31,20 @@ const indexes = [
   { collection: 'study_plans', name: 'user_status', keys: { userId: 1, status: 1 } },
   { collection: 'plan_problems', name: 'plan_problem_unique', keys: { planId: 1, problemId: 1 }, unique: true },
   { collection: 'plan_problems', name: 'plan_order_unique', keys: { planId: 1, planOrder: 1 }, unique: true },
-  { collection: 'user_problems', name: 'user_problem_unique', keys: { userId: 1, problemId: 1 }, unique: true },
-  { collection: 'user_problems', name: 'review_schedule', keys: { userId: 1, isSlashed: 1, nextReviewAt: 1 } },
+  { collection: 'user_problems', name: 'user_plan_problem_unique', keys: { userId: 1, planId: 1, problemId: 1 }, unique: true },
+  { collection: 'user_problems', name: 'plan_review_schedule', keys: { userId: 1, planId: 1, isSlashed: 1, nextReviewAt: 1 } },
   { collection: 'practice_records', name: 'user_submitted_at', keys: { userId: 1, submittedAt: -1 } },
   { collection: 'practice_records', name: 'problem_submitted_at', keys: { problemId: 1, submittedAt: -1 } },
   { collection: 'ai_analyses', name: 'record_unique', keys: { recordId: 1 }, unique: true },
+  { collection: 'ai_analyses', name: 'user_date_status', keys: { userId: 1, date: 1, status: 1 } },
+  { collection: 'ai_analyses', name: 'date_status', keys: { date: 1, status: 1 } },
+  { collection: 'ai_usage', name: 'user_date_status', keys: { userId: 1, date: 1, status: 1 } },
+  { collection: 'ai_usage', name: 'date_status', keys: { date: 1, status: 1 } },
   { collection: 'daily_situations', name: 'user_date_unique', keys: { userId: 1, date: 1 }, unique: true },
+  { collection: 'experience_libraries', name: 'user_plan_unique', keys: { userId: 1, planId: 1 }, unique: true },
+  { collection: 'experience_refinement_logs', name: 'user_plan_created', keys: { userId: 1, planId: 1, createdAt: -1 } },
+  { collection: 'user_feedback', name: 'status_created', keys: { status: 1, createdAt: -1 } },
+  { collection: 'user_feedback', name: 'user_created', keys: { userId: 1, createdAt: -1 } },
 ]
 
 function getManager() {

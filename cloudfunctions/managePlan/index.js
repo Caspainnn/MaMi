@@ -213,24 +213,26 @@ async function getDueUserProblems(userId, planId) {
   let offset = 0
   while (true) {
     const result = await db.collection('user_problems').where({
-      userId, isSlashed: false, nextReviewAt: db.command.lte(new Date()),
+      userId, planId, isSlashed: false, nextReviewAt: db.command.lte(new Date()),
     }).skip(offset).limit(PAGE_SIZE).get()
-    due.push(...result.data.filter((item) => item.planId === planId))
+    due.push(...result.data)
     if (result.data.length < PAGE_SIZE) return due
     offset += result.data.length
   }
 }
 
-async function getCheckinStreak(userId) {
+async function getCheckinStreak(userId, planId) {
   const result = await db.collection('daily_situations').where({ userId }).orderBy('date', 'desc').limit(100).get()
-  const checkedDates = new Set(result.data.filter((item) => item.totalSubmissionCount > 0).map((item) => item.date))
+  const checkedDates = new Set(result.data.filter((item) => item.planId === planId && item.totalSubmissionCount > 0).map((item) => item.date))
   let streak = 0
   const cursor = new Date(`${getChinaDate()}T00:00:00+08:00`)
+  const checkedInToday = checkedDates.has(getChinaDate(cursor))
+  if (!checkedInToday) cursor.setDate(cursor.getDate() - 1)
   while (checkedDates.has(getChinaDate(cursor))) {
     streak += 1
     cursor.setDate(cursor.getDate() - 1)
   }
-  return streak
+  return { streak, checkedInToday }
 }
 
 async function getTodayTasks() {
@@ -245,16 +247,16 @@ async function getTodayTasks() {
   const start = dayOffset * dailyNewCount
   const relations = await getPlanProblems(plan._id, start, dailyNewCount)
   const userProblemResult = relations.length ? await db.collection('user_problems')
-    .where({ userId: user._id, problemId: db.command.in(relations.map((item) => item.problemId)) })
+    .where({ userId: user._id, planId: plan._id, problemId: db.command.in(relations.map((item) => item.problemId)) })
     .get() : { data: [] }
   const userProblemMap = userProblemResult.data.reduce((map, item) => { map[item.problemId] = item; return map }, {})
   const slashedProblemIds = new Set(userProblemResult.data.filter((item) => item.isSlashed).map((item) => item.problemId))
   const availableRelations = relations.filter((item) => !slashedProblemIds.has(item.problemId))
-  const [records, allPlanRelations, dueUserProblems, streak] = await Promise.all([
+  const [records, allPlanRelations, dueUserProblems, checkin] = await Promise.all([
     getProblems(availableRelations.map((item) => item.problemId)),
     getAllPlanProblems(plan._id),
     getDueUserProblems(user._id, plan._id),
-    getCheckinStreak(user._id),
+    getCheckinStreak(user._id, plan._id),
   ])
   const recordMap = records.reduce((map, item) => {
     map[item._id] = item
@@ -301,7 +303,8 @@ async function getTodayTasks() {
       questionBankCode: plan.questionBankCode,
       estimatedFinishDate: plan.estimatedFinishDate,
       dayOffset,
-      streak,
+      streak: checkin.streak,
+      checkedInToday: checkin.checkedInToday,
     },
     newTasks,
     reviewTasks,

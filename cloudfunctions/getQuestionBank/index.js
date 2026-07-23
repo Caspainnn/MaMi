@@ -3,6 +3,7 @@ const cloud = require('wx-server-sdk')
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 const db = cloud.database()
 const PAGE_SIZE = 100
+const LEVEL_LABELS = { Lv0: '含苞·蓄势待发', Lv1: '一破·卧龙出山', Lv2: '双连·一战成名', Lv3: '三连·举世皆惊', Lv4: '四连·天下无敌', Lv5: '五连·诛天灭地' }
 
 async function getBank(bankCode) {
   const result = await db.collection('question_banks').where({ code: bankCode }).limit(1).get()
@@ -35,7 +36,26 @@ async function getProblems(problemIds) {
   return result
 }
 
-function formatProblem(problem) {
+async function getUserProblemMap(problemIds) {
+  const { OPENID } = cloud.getWXContext()
+  if (!OPENID || !problemIds.length) return {}
+  const userResult = await db.collection('users').where({ openid: OPENID }).limit(1).get()
+  const user = userResult.data[0]
+  if (!user) return {}
+  const planResult = await db.collection('study_plans').where({ userId: user._id, status: 'active' }).limit(1).get()
+  const plan = planResult.data[0]
+  if (!plan) return {}
+  const states = []
+  for (let start = 0; start < problemIds.length; start += PAGE_SIZE) {
+    const ids = problemIds.slice(start, start + PAGE_SIZE)
+    const result = await db.collection('user_problems').where({ userId: user._id, planId: plan._id, problemId: db.command.in(ids) }).get()
+    states.push(...result.data)
+  }
+  return states.reduce((map, item) => { map[item.problemId] = item; return map }, {})
+}
+
+function formatProblem(problem, userProblem) {
+  const level = userProblem && userProblem.level || 'Lv0'
   return {
     id: problem._id,
     number: problem.sourceProblemId,
@@ -45,6 +65,8 @@ function formatProblem(problem) {
     tags: problem.tags || [],
     summary: problem.summary || '',
     link: problem.link || '',
+    level,
+    levelLabel: LEVEL_LABELS[level] || level,
   }
 }
 
@@ -54,6 +76,7 @@ async function listProblems(bankCode, keyword = '', category = '') {
 
   const relations = await getAllRelations(bank._id)
   const records = await getProblems(relations.map((item) => item.problemId))
+  const userProblemMap = await getUserProblemMap(relations.map((item) => item.problemId))
   const recordMap = records.reduce((map, item) => {
     map[item._id] = item
     return map
@@ -61,7 +84,7 @@ async function listProblems(bankCode, keyword = '', category = '') {
   const allProblems = relations
     .map((relation) => recordMap[relation.problemId])
     .filter(Boolean)
-    .map(formatProblem)
+    .map((problem) => formatProblem(problem, userProblemMap[problem._id]))
   const normalizedKeyword = String(keyword).trim().toLowerCase()
   const problems = allProblems.filter((problem) => (
     (!category || problem.category === category)

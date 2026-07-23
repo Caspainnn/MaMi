@@ -19,7 +19,7 @@ const LEVEL_TITLES = {
 function levelValue(level) { return Number(String(level || 'Lv0').replace('Lv', '')) || 0 }
 
 Page({
-  data: { problem: null, bankCode: '', recallOptions: RECALL_OPTIONS, durationOptions: DURATION_OPTIONS, recallResult: '', duration: '', code: '', summary: '', submitting: false, successState: null },
+  data: { problem: null, bankCode: '', recallOptions: RECALL_OPTIONS, durationOptions: DURATION_OPTIONS, recallResult: '', duration: '', code: '', summary: '', aiDraft: null, aiGenerating: false, submitting: false, successState: null },
   onLoad(options) {
     this.setData({ bankCode: options.bankCode || 'leetcode-hot-100' })
     wx.cloud.callFunction({ name: 'getQuestionBank', data: { action: 'detail', bankCode: this.data.bankCode, problemId: options.id } })
@@ -29,17 +29,31 @@ Page({
       })
       .catch(() => wx.showToast({ title: '题目读取失败，请返回重试', icon: 'none' }))
   },
-  chooseRecall(e) { this.setData({ recallResult: e.currentTarget.dataset.value }) },
-  chooseDuration(e) { this.setData({ duration: e.currentTarget.dataset.value }) },
-  updateCode(e) { this.setData({ code: e.detail.value }) },
+  chooseRecall(e) { this.setData({ recallResult: e.currentTarget.dataset.value, aiDraft: null }) },
+  chooseDuration(e) { this.setData({ duration: e.currentTarget.dataset.value, aiDraft: null }) },
+  updateCode(e) { this.setData({ code: e.detail.value, aiDraft: null }) },
   updateSummary(e) { this.setData({ summary: e.detail.value }) },
+  generateSummary() {
+    const { problem, recallResult, duration, code, summary, aiGenerating } = this.data
+    if (aiGenerating || !problem) return
+    if (!recallResult || !duration) return wx.showToast({ title: '请先选择刷题情况和耗时', icon: 'none' })
+    this.setData({ aiGenerating: true })
+    wx.cloud.callFunction({ name: 'generateAIAnalysis', data: { action: 'draft', problemId: problem.id, recallResult, duration, code, summary } })
+      .then(({ result }) => {
+        if (!result || !result.success || !result.analysis) throw new Error((result && result.message) || 'AI 生成失败')
+        const analysis = result.analysis
+        this.setData({ summary: [analysis.summary, analysis.suggestion].filter(Boolean).join('\n\n'), aiDraft: analysis })
+      })
+      .catch((error) => wx.showToast({ title: error.message || 'AI 生成失败，请重试', icon: 'none' }))
+      .finally(() => this.setData({ aiGenerating: false }))
+  },
   submit() {
-    const { problem, recallResult, duration, code, summary, submitting } = this.data
+    const { problem, recallResult, duration, code, summary, aiDraft, submitting } = this.data
     if (submitting || !problem) return
     if (!recallResult || !duration) return wx.showToast({ title: '请选择回忆结果和耗时', icon: 'none' })
     this.setData({ submitting: true })
     wx.showLoading({ title: '正在保存' })
-    wx.cloud.callFunction({ name: 'managePractice', data: { action: 'create', problemId: problem.id, recallResult, duration, code, summary } })
+    wx.cloud.callFunction({ name: 'managePractice', data: { action: 'create', problemId: problem.id, recallResult, duration, code, summary, aiAnalysis: aiDraft } })
       .then(({ result }) => {
         if (!result || !result.success) throw new Error((result && result.error) || '保存失败')
         const { state } = result
@@ -49,9 +63,23 @@ Page({
           ? LEVEL_TITLES[state.levelAfter]
           : after < before ? '死脑快记啊' : '记录已保存'
         this.setData({ successState: { ...state, successTitle, nextReviewText: state.nextReviewDays === 1 ? '明天' : `${state.nextReviewDays} 天后` } })
+        wx.hideLoading()
       })
-      .catch((error) => wx.showToast({ title: error.message || '保存失败，请重试', icon: 'none' }))
-      .finally(() => { wx.hideLoading(); this.setData({ submitting: false }) })
+      .catch((error) => {
+        wx.hideLoading()
+        wx.showToast({ title: error.message || '保存失败，请重试', icon: 'none' })
+      })
+      .finally(() => this.setData({ submitting: false }))
   },
-  closeSuccessModal() { wx.navigateBack() },
+  closeSuccessModal() {
+    const pages = getCurrentPages()
+    const previousPage = pages[pages.length - 2]
+    if (previousPage && previousPage.route === 'pages/question-detail/index') {
+      previousPage.setData({ activeTab: 'records', expandedRecordId: '' })
+      previousPage.loadPracticeRecords()
+      wx.navigateBack()
+      return
+    }
+    wx.redirectTo({ url: `/pages/question-detail/index?id=${this.data.problem.id}&bankCode=${this.data.bankCode}&tab=records` })
+  },
 })

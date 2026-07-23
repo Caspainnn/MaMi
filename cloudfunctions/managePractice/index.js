@@ -61,7 +61,7 @@ function levelValue(level) {
 
 async function updateUserProblem(user, problemId, planId, recallResult, duration) {
   const today = getChinaDate()
-  const result = await db.collection('user_problems').where({ userId: user._id, problemId }).limit(1).get()
+  const result = await db.collection('user_problems').where({ userId: user._id, planId, problemId }).limit(1).get()
   const existing = result.data[0]
   const isDueReview = Boolean(existing && existing.nextReviewAt && new Date(existing.nextReviewAt).getTime() <= Date.now())
   const levelBefore = existing ? existing.level || 'Lv0' : 'Lv0'
@@ -104,11 +104,11 @@ async function getTodayTaskTargets(userId, plan) {
   const start = dayOffset * dailyNewCount
   const [planProblems, dueUserProblems] = await Promise.all([
     db.collection('plan_problems').where({ planId: plan._id }).orderBy('planOrder', 'asc').skip(start).limit(dailyNewCount).get(),
-    db.collection('user_problems').where({ userId, isSlashed: false, nextReviewAt: db.command.lte(new Date()) }).limit(100).get(),
+    db.collection('user_problems').where({ userId, planId: plan._id, isSlashed: false, nextReviewAt: db.command.lte(new Date()) }).limit(100).get(),
   ])
   const selectedIds = planProblems.data.map((item) => item.problemId)
   const selectedUserProblems = selectedIds.length ? await db.collection('user_problems')
-    .where({ userId, problemId: db.command.in(selectedIds) }).get() : { data: [] }
+    .where({ userId, planId: plan._id, problemId: db.command.in(selectedIds) }).get() : { data: [] }
   const slashedIds = new Set(selectedUserProblems.data.filter((item) => item.isSlashed).map((item) => item.problemId))
   const completedNewCount = selectedUserProblems.data.filter((item) => (
     !item.isSlashed && item.lastPracticedAt && getChinaDate(new Date(item.lastPracticedAt)) === getChinaDate()
@@ -116,24 +116,27 @@ async function getTodayTaskTargets(userId, plan) {
   return {
     expectedNewCount: selectedIds.filter((id) => !slashedIds.has(id)).length,
     completedNewCount,
-    expectedReviewCount: dueUserProblems.data.filter((item) => item.planId === plan._id).length,
+    expectedReviewCount: dueUserProblems.data.length,
   }
 }
 
-async function recordDailySituation(user, state, targets) {
+async function recordDailySituation(user, state, targets, planId) {
   const date = getChinaDate()
   const result = await db.collection('daily_situations').where({ userId: user._id, date }).limit(1).get()
   const existing = result.data[0]
+  const samePlanExisting = existing && existing.planId === planId && existing.taskTargetsPlanId === planId ? existing : null
   const newSubmissionIncrement = state.isFirstPractice ? 1 : 0
   const reviewSubmissionIncrement = !state.isFirstPractice && state.isDueReview ? 1 : 0
-  const newSubmissionCount = (existing && existing.newSubmissionCount || 0) + newSubmissionIncrement
-  const reviewSubmissionCount = (existing && existing.reviewSubmissionCount || 0) + reviewSubmissionIncrement
-  const totalSubmissionCount = (existing && existing.totalSubmissionCount || 0) + 1
-  const expectedNewCount = existing && Number.isInteger(existing.expectedNewCount) ? existing.expectedNewCount : targets.expectedNewCount
-  const expectedReviewCount = existing && Number.isInteger(existing.expectedReviewCount) ? existing.expectedReviewCount : targets.expectedReviewCount
+  const newSubmissionCount = (samePlanExisting && samePlanExisting.newSubmissionCount || 0) + newSubmissionIncrement
+  const reviewSubmissionCount = (samePlanExisting && samePlanExisting.reviewSubmissionCount || 0) + reviewSubmissionIncrement
+  const totalSubmissionCount = (samePlanExisting && samePlanExisting.totalSubmissionCount || 0) + 1
+  const expectedNewCount = samePlanExisting && Number.isInteger(samePlanExisting.expectedNewCount) ? samePlanExisting.expectedNewCount : targets.expectedNewCount
+  const expectedReviewCount = samePlanExisting && Number.isInteger(samePlanExisting.expectedReviewCount) ? samePlanExisting.expectedReviewCount : targets.expectedReviewCount
   const isComplete = expectedNewCount + expectedReviewCount > 0
     && newSubmissionCount >= expectedNewCount && reviewSubmissionCount >= expectedReviewCount
   const data = {
+    planId,
+    taskTargetsPlanId: planId,
     newSubmissionCount,
     reviewSubmissionCount,
     totalSubmissionCount,
@@ -154,8 +157,7 @@ async function slayProblem(event) {
   const planResult = await db.collection('study_plans').where({ userId: user._id, status: 'active' }).limit(1).get()
   const plan = planResult.data[0]
   const planId = plan ? plan._id : ''
-  const targets = await getTodayTaskTargets(user._id, plan)
-  const result = await db.collection('user_problems').where({ userId: user._id, problemId: event.problemId }).limit(1).get()
+  const result = await db.collection('user_problems').where({ userId: user._id, planId, problemId: event.problemId }).limit(1).get()
   const existing = result.data[0]
   const data = {
     planId,
@@ -177,8 +179,8 @@ async function getAllUserProblems(userId, planId) {
   const items = []
   let offset = 0
   while (true) {
-    const result = await db.collection('user_problems').where({ userId }).skip(offset).limit(100).get()
-    items.push(...result.data.filter((item) => item.planId === planId))
+    const result = await db.collection('user_problems').where({ userId, planId }).skip(offset).limit(100).get()
+    items.push(...result.data)
     if (result.data.length < 100) return items
     offset += result.data.length
   }
@@ -212,12 +214,13 @@ async function getStats() {
   const user = await getUser()
   const planResult = await db.collection('study_plans').where({ userId: user._id, status: 'active' }).limit(1).get()
   const plan = planResult.data[0]
-  const totalPracticeResult = await db.collection('practice_records').where({ userId: user._id }).count()
   const monthCalendar = getCurrentMonthCalendar()
   const historyResult = await db.collection('daily_situations').where({ userId: user._id }).orderBy('date', 'desc').limit(100).get()
-  const checkedDates = new Set(historyResult.data.filter((item) => item.totalSubmissionCount > 0).map((item) => item.date))
+  const planHistory = plan ? historyResult.data.filter((item) => item.planId === plan._id) : []
+  const checkedDates = new Set(planHistory.filter((item) => item.totalSubmissionCount > 0).map((item) => item.date))
   let streak = 0
   const cursor = new Date(`${getChinaDate()}T00:00:00+08:00`)
+  if (!checkedDates.has(getChinaDate(cursor))) cursor.setDate(cursor.getDate() - 1)
   while (checkedDates.has(getChinaDate(cursor))) {
     streak += 1
     cursor.setDate(cursor.getDate() - 1)
@@ -225,7 +228,9 @@ async function getStats() {
   if (!plan) return {
     success: true,
     plan: null,
-    totalPracticeCount: totalPracticeResult.total,
+    // "累计数据" is scoped to the current active plan. When no plan is active,
+    // there is no plan-level total to display.
+    totalPracticeCount: 0,
     streak,
     slashedCount: 0,
     levelCounts: [], progressPercent: 0,
@@ -233,7 +238,11 @@ async function getStats() {
     calendarDays: monthCalendar.days.map((item) => ({ ...item, checkinState: item.blank ? 'blank' : 'none' })),
   }
 
-  const [planProblems, userProblems, todayTargets] = await Promise.all([getAllPlanProblems(plan._id), getAllUserProblems(user._id, plan._id), getTodayTaskTargets(user._id, plan)])
+  const [planProblems, userProblems, totalPracticeResult] = await Promise.all([
+    getAllPlanProblems(plan._id),
+    getAllUserProblems(user._id, plan._id),
+    db.collection('practice_records').where({ userId: user._id, planId: plan._id }).count(),
+  ])
   const userProblemMap = userProblems.reduce((map, item) => { map[item.problemId] = item; return map }, {})
   const counts = { Lv0: 0, Lv1: 0, Lv2: 0, Lv3: 0, Lv4: 0, Lv5: 0 }
   planProblems.forEach((item) => { counts[userProblemMap[item.problemId] ? userProblemMap[item.problemId].level || 'Lv0' : 'Lv0'] += 1 })
@@ -249,21 +258,15 @@ async function getStats() {
     ringCursor += planProblems.length ? item.count / planProblems.length * 100 : 0
     return `${item.color} ${start}% ${ringCursor}%`
   })
-  const dailyMap = historyResult.data.reduce((map, item) => { map[item.date] = item; return map }, {})
-  const todayDate = getChinaDate()
+  const dailyMap = planHistory.reduce((map, item) => { map[item.date] = item; return map }, {})
   const calendarDays = monthCalendar.days.map((item) => {
     if (item.blank) return { ...item, checkinState: 'blank' }
     const daily = dailyMap[item.date]
-    const expectedNewCount = daily && Number.isInteger(daily.expectedNewCount)
-      ? daily.expectedNewCount : item.date === todayDate ? todayTargets.expectedNewCount : 0
-    const expectedReviewCount = daily && Number.isInteger(daily.expectedReviewCount)
-      ? daily.expectedReviewCount : item.date === todayDate ? todayTargets.expectedReviewCount : 0
-    const isTodayComplete = item.date === todayDate && daily && daily.totalSubmissionCount > 0
-      && todayTargets.completedNewCount >= todayTargets.expectedNewCount
-      && todayTargets.expectedReviewCount === 0
-      && (todayTargets.expectedNewCount > 0 || daily.reviewSubmissionCount > 0)
-    const isComplete = isTodayComplete || (daily && daily.totalSubmissionCount > 0 && expectedNewCount + expectedReviewCount > 0
-      && daily.newSubmissionCount >= expectedNewCount && daily.reviewSubmissionCount >= expectedReviewCount)
+    const hasTaskTargets = daily && daily.taskTargetsPlanId === plan._id
+      && Number.isInteger(daily.expectedNewCount) && Number.isInteger(daily.expectedReviewCount)
+    const isComplete = hasTaskTargets && daily.totalSubmissionCount > 0
+      && daily.expectedNewCount + daily.expectedReviewCount > 0
+      && daily.newSubmissionCount >= daily.expectedNewCount && daily.reviewSubmissionCount >= daily.expectedReviewCount
     const checkinState = isComplete ? 'full' : daily && daily.totalSubmissionCount > 0 ? 'partial' : 'none'
     return { ...item, checkinState }
   })
@@ -297,7 +300,9 @@ async function createRecord(event) {
   const problem = await db.collection('problems').doc(event.problemId).get()
   if (!problem.data) throw new Error('题目不存在')
   const planResult = await db.collection('study_plans').where({ userId: user._id, status: 'active' }).limit(1).get()
-  const planId = planResult.data[0] ? planResult.data[0]._id : ''
+  const plan = planResult.data[0]
+  const planId = plan ? plan._id : ''
+  const targets = await getTodayTaskTargets(user._id, plan)
   const created = await db.collection('practice_records').add({
     data: {
       userId: user._id,
@@ -311,8 +316,23 @@ async function createRecord(event) {
       createdAt: db.serverDate(),
     },
   })
+  if (event.aiAnalysis && String(event.aiAnalysis.summary || '').trim()) {
+    await db.collection('ai_analyses').add({
+      data: {
+        recordId: created._id,
+        userId: user._id,
+        summary: String(event.aiAnalysis.summary || '').trim().slice(0, 200),
+        suggestion: String(event.aiAnalysis.suggestion || '').trim().slice(0, 500),
+        status: 'success',
+        source: 'user_requested_draft',
+        promptVersion: 1,
+        createdAt: db.serverDate(),
+        updatedAt: db.serverDate(),
+      },
+    })
+  }
   const state = await updateUserProblem(user, event.problemId, planId, event.recallResult, event.duration)
-  await recordDailySituation(user, state, targets)
+  await recordDailySituation(user, state, targets, planId)
   await db.collection('practice_records').doc(created._id).update({
     data: {
       recallTier: state.recallTier,
@@ -327,12 +347,15 @@ async function createRecord(event) {
 async function listRecords(event) {
   if (!event.problemId) throw new Error('缺少题目信息')
   const user = await getUser()
+  const planResult = await db.collection('study_plans').where({ userId: user._id, status: 'active' }).limit(1).get()
+  const plan = planResult.data[0]
+  if (!plan) return { success: true, records: [] }
   const result = await db.collection('practice_records')
-    .where({ problemId: event.problemId })
+    .where({ userId: user._id, problemId: event.problemId, planId: plan._id })
     .orderBy('submittedAt', 'desc')
     .limit(100)
     .get()
-  const records = result.data.filter((item) => item.userId === user._id).map((item) => ({
+  const records = result.data.map((item) => ({
     id: item._id,
     recallType: item.recallResult,
     recallResult: RECALL_LABELS[item.recallResult] || item.recallResult,
