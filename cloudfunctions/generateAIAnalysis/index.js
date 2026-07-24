@@ -82,8 +82,8 @@ function buildPrompt(problem, record, histories) {
     : '暂无历史记录'
   const hasCode = Boolean(String(record.code || '').trim())
   const instruction = hasCode
-    ? '第一段输出一句 50 字以内的复盘，必须包含时间复杂度和空间复杂度；只有在代码有问题、不是最优解或存在明显优化空间时，再输出第二段（100 字内）。禁止完整题解和代码。'
-    : '输出两段：第一段为 50 字以内的记忆状态总结；仅在未独立通过、历史明显退步或耗时异常时输出第二段（100 字内的复习建议）。禁止完整题解、代码和编造错误。'
+    ? '第一段输出一句 50 字以内的复盘，必须包含时间复杂度和空间复杂度；只有在代码有问题、不是最优解或存在明显优化空间时，再输出第二段（100 字内）。禁止完整题解和代码。输出示例：时间O(n)，空间O(n)。优化：暴力->哈希'
+    : '输出两段：第一段为 50 字以内的记忆状态总结，不能照搬用户的回忆结果和耗时，而是将这些信息总结成1~2个词；仅在未独立通过、历史明显退步或耗时异常时输出第二段（100 字内的复习建议），以“需要...”开头，比如：需要重点刷二分；需要模仿他人题解等。禁止完整题解、代码和编造错误。'
   return `你是「码秘」算法记忆复盘助手。你的工作是评估记忆与复盘，不是讲题或生成题解。\n\n【题目信息】\n${problemInfo}\n\n【本次回忆结果】\n${RECALL_LABELS[record.recallResult] || record.recallResult}\n\n【本次耗时】\n${DURATION_LABELS[record.duration] || record.duration}\n\n【用户代码】\n${hasCode ? record.code : '未提交代码'}\n\n【用户总结】\n${record.summary || '未提交总结'}\n\n【历史刷题记录】\n${historyRecords}\n\n${instruction}`
 }
 

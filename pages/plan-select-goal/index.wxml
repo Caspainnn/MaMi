@@ -9,7 +9,8 @@
     <text class="goal-name">根据每日新题数</text><text class="goal-desc">设定每日新刷题数，自动估算完成天数</text>
     <view class="input-row" wx:if="{{planType === 'by_daily_new_count'}}"><input type="number" value="{{value}}" placeholder="输入每日新题数" bindinput="updateValue" /><text>题/天</text></view>
   </view>
+  <view class="review-limit card"><text class="review-limit-title">每题最多复刷几次？</text><text class="review-limit-copy">首次新刷不计入；达到上限后不再安排后续复刷。</text><view class="review-limit-options"><view wx:for="{{reviewLimitOptions}}" wx:key="*this" class="review-limit-option {{reviewLimit === item ? 'selected' : ''}}" bindtap="chooseReviewLimit" data-value="{{item}}">{{item}} 次</view></view><text class="review-limit-hint">{{reviewLimitHint}}</text></view>
   <text class="validation" wx:if="{{validationMessage}}">{{validationMessage}}</text>
-  <view class="estimate" wx:if="{{estimate}}"><text class="estimate-title">本次计划预估</text><view><text>平均新刷</text><text>{{estimate.dailyNewCount}} 题/日</text></view><view><text>平均复刷</text><text>{{estimate.averageReviewCount}} 题/日</text></view><view><text>预计完成</text><text>{{estimate.finishDate}}（第 {{estimate.targetDays}} 天）</text></view><text class="estimate-hint">按第 0、1、3、7、15 天的理想复习节点预估；实际复刷会依据提交结果调整。</text></view>
+  <view class="estimate" wx:if="{{estimate}}"><text class="estimate-title">本次计划预估</text><view><text>平均新刷</text><text>{{estimate.dailyNewCount}} 题/日</text></view><view><text>平均复刷</text><text>{{estimate.averageReviewCount}} 题/日</text></view><view><text>预计完成</text><text>{{estimate.finishDate}}（第 {{estimate.targetDays}} 天）</text></view><text class="estimate-hint">按新刷后第 1、3、7、15、31 天节点预估；本计划每题最多复刷 {{reviewLimit}} 次，实际复刷会依据提交结果调整。</text></view>
   <button class="submit {{!estimate ? 'disabled' : ''}}" disabled="{{!estimate || submitting}}" loading="{{submitting}}" bindtap="createPlan">定好了，开刷！</button>
 </view>
