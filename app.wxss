@@ -29,4 +29,5 @@ view, text, button, input {
 
 .muted {
   color: #8d93a5;
+  font-size: 20rpx;
 }

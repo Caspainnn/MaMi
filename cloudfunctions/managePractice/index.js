@@ -19,6 +19,11 @@ const TRANSITIONS = {
 }
 const LEVEL_COLORS = { Lv0: '#6B7A8F', Lv1: '#94A3B8', Lv2: '#60A5FA', Lv3: '#22D3EE', Lv4: '#C084FC', Lv5: '#FBBF24' }
 
+function getReviewLimit(value) {
+  const limit = Number(value)
+  return Number.isInteger(limit) && limit >= 1 && limit <= 5 ? limit : 5
+}
+
 function formatDateTime(date) {
   if (!date) return ''
   return new Intl.DateTimeFormat('zh-CN', {
@@ -59,11 +64,13 @@ function levelValue(level) {
   return Number(String(level || 'Lv0').replace('Lv', '')) || 0
 }
 
-async function updateUserProblem(user, problemId, planId, recallResult, duration) {
+async function updateUserProblem(user, problemId, planId, recallResult, duration, reviewLimit) {
   const today = getChinaDate()
   const result = await db.collection('user_problems').where({ userId: user._id, planId, problemId }).limit(1).get()
   const existing = result.data[0]
   const isDueReview = Boolean(existing && existing.nextReviewAt && new Date(existing.nextReviewAt).getTime() <= Date.now())
+  const nextReviewCount = (existing && existing.reviewCount || 0) + (isDueReview ? 1 : 0)
+  const reviewLimitReached = Boolean(existing && existing.reviewCount >= reviewLimit) || nextReviewCount >= reviewLimit
   const levelBefore = existing ? existing.level || 'Lv0' : 'Lv0'
   const tier = getRecallTier(recallResult, duration)
   const transition = TRANSITIONS[levelBefore][tier.name]
@@ -75,8 +82,9 @@ async function updateUserProblem(user, problemId, planId, recallResult, duration
     planId,
     level: levelAfter,
     lastPracticedAt: db.serverDate(),
-    nextReviewAt: addChinaDays(transition[1]),
+    nextReviewAt: reviewLimitReached ? null : addChinaDays(transition[1]),
     practiceCount: (existing && existing.practiceCount || 0) + 1,
+    reviewCount: nextReviewCount,
     forgetCount: (existing && existing.forgetCount || 0) + (tier.name === 'forgotten' ? 1 : 0),
     isSlashed: Boolean(existing && existing.isSlashed),
     version: (existing && existing.version || 0) + 1,
@@ -94,6 +102,10 @@ async function updateUserProblem(user, problemId, planId, recallResult, duration
     upgradeBlocked,
     isFirstPractice: !existing,
     isDueReview,
+    reviewScheduledAt: existing && existing.nextReviewAt ? existing.nextReviewAt : null,
+    reviewCount: nextReviewCount,
+    reviewLimit,
+    reviewLimitReached,
   }
 }
 
@@ -331,7 +343,7 @@ async function createRecord(event) {
       },
     })
   }
-  const state = await updateUserProblem(user, event.problemId, planId, event.recallResult, event.duration)
+  const state = await updateUserProblem(user, event.problemId, planId, event.recallResult, event.duration, getReviewLimit(plan && plan.reviewLimit))
   await recordDailySituation(user, state, targets, planId)
   await db.collection('practice_records').doc(created._id).update({
     data: {
@@ -339,6 +351,8 @@ async function createRecord(event) {
       levelBefore: state.levelBefore,
       levelAfter: state.levelAfter,
       upgradeBlocked: state.upgradeBlocked,
+      taskType: state.isFirstPractice ? 'new' : state.isDueReview ? 'review' : 'extra',
+      reviewScheduledAt: state.reviewScheduledAt,
     },
   })
   return { success: true, recordId: created._id, state }

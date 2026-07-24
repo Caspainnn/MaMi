@@ -10,6 +10,7 @@
     "pages/plan-select-goal/index",
     "pages/practice-submit/index"
   ],
+  "lazyCodeLoading": "requiredComponents",
   "window": {
     "navigationBarTitleText": "码秘 MaMi",
     "navigationBarBackgroundColor": "#5B5BFF",

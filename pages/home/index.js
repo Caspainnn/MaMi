@@ -1,5 +1,19 @@
 Page({
-  data: { activePlan: null, newProblems: [], reviewProblems: [], today: '', loadingTasks: true, showLoginSheet: false, loginLoading: false },
+  data: {
+    activePlan: null,
+    newProblems: [],
+    reviewProblems: [],
+    visibleNewProblems: [],
+    visibleReviewProblems: [],
+    newCompletedCount: 0,
+    reviewCompletedCount: 0,
+    showAllNew: false,
+    showAllReview: false,
+    today: '',
+    loadingTasks: true,
+    showLoginSheet: false,
+    loginLoading: false,
+  },
   onShow() {
     const tabBar = this.getTabBar && this.getTabBar()
     if (tabBar) tabBar.setData({ selected: 0 })
@@ -13,14 +27,34 @@ Page({
     wx.cloud.callFunction({ name: 'managePlan', data: { action: 'getTodayTasks' } })
       .then(({ result }) => {
         if (!result || !result.success) throw new Error('读取今日任务失败')
+        const previousPlanId = this.data.activePlan && this.data.activePlan.id
+        const nextPlanId = result.plan && result.plan.id
+        const planChanged = previousPlanId !== nextPlanId
         this.setData({
           activePlan: result.plan,
           newProblems: result.newTasks || [],
           reviewProblems: result.reviewTasks || [],
+          showAllNew: planChanged ? false : this.data.showAllNew,
+          showAllReview: planChanged ? false : this.data.showAllReview,
           loadingTasks: false,
-        })
+        }, () => this.updateTaskViews())
       })
-      .catch(() => this.setData({ activePlan: null, newProblems: [], reviewProblems: [], loadingTasks: false }))
+      .catch(() => this.setData({ activePlan: null, newProblems: [], reviewProblems: [], visibleNewProblems: [], visibleReviewProblems: [], loadingTasks: false }))
+  },
+  updateTaskViews() {
+    const { newProblems, reviewProblems, showAllNew, showAllReview } = this.data
+    this.setData({
+      visibleNewProblems: showAllNew ? newProblems : newProblems.slice(0, 3),
+      visibleReviewProblems: showAllReview ? reviewProblems : reviewProblems.slice(0, 3),
+      newCompletedCount: newProblems.filter((item) => item.isCompletedToday).length,
+      reviewCompletedCount: reviewProblems.filter((item) => item.isCompletedToday).length,
+    })
+  },
+  toggleNewTasks() {
+    this.setData({ showAllNew: !this.data.showAllNew }, () => this.updateTaskViews())
+  },
+  toggleReviewTasks() {
+    this.setData({ showAllReview: !this.data.showAllReview }, () => this.updateTaskViews())
   },
   deferLogin() { this.setData({ showLoginSheet: false }) },
   confirmLogin() {

@@ -101,7 +101,7 @@ function requestAI(messages) {
 function buildPrompt(records, library) {
   const summaries = records.map((item, index) => `【总结 ${index + 1}】\n${text(item.summary, 2000)}`).join('\n\n')
   const fence = String.fromCharCode(96).repeat(3)
-  return `你是编程刷题经验编辑器。根据当前计划新增的用户总结，将有效、可复用的内容分别沉淀到“思路 Markdown”和“语法 Markdown”。忽略闲聊、情绪表达、无关内容、不完整或没有复用价值的信息；不得输出完整题解。\n\n【思路 Markdown】AI 自行判断属于解题策略、触发条件、思考路径的内容。使用 Markdown 有序列表；每条不超过30个汉字；格式为“1. 触发条件 → 行动策略”；合并重复项，最多12条。\n【语法 Markdown】AI 自行判断属于编程语言语法、标准库或工具用法的内容。使用 Markdown 有序列表，每项先写一句用途说明，再用带语言标识的围栏代码块给出一个经典短示例；说明不超过30个汉字，代码尽量一行；不限定语言；最多12条。\n\n以下是用户已有内容。不要重复或改写它们，只返回新增内容：\n【已有思路】\n${text(library.thinkingMarkdown, 4000) || '无'}\n【已有语法】\n${text(library.syntaxMarkdown, 4000) || '无'}\n\n严格返回 JSON，不要 JSON 外的解释：\n{"thinkingMarkdown":"1. ...","syntaxMarkdown":"1. ...\\n${fence}python\\n...\\n${fence}"}\n\n【新增提交总结】\n${summaries}`
+  return `你是编程刷题经验编辑器。根据当前计划新增的用户总结，将有效、可复用的内容分别沉淀到“思路 Markdown”和“语法 Markdown”。忽略闲聊、情绪表达、无关内容、不完整或没有复用价值的信息；不得输出完整题解。\n\n【思路 Markdown】AI 自行判断属于解题策略、触发条件、思考路径的内容。注意，若总结中出现“文字描述”+“示例代码”这样的情况不属于本模块。使用 Markdown 有序列表；每条不超过30个汉字；格式为“1. 触发条件 → 行动策略”；合并重复项，最多12条。\n【语法 Markdown】AI 自行判断属于编程语言语法、标准库或工具用法的内容。使用 Markdown 有序列表，每项先写一句用途说明，再用带语言标识的围栏代码块给出一个经典短示例；说明不超过30个汉字，代码尽量一行；不限定语言；最多12条。\n\n以下是用户已有内容。不要重复或改写它们，只返回新增内容。若已有思路或语法有序，则你返回的文本序号应该紧接着，而不是另起新的序号：\n【已有思路】\n${text(library.thinkingMarkdown, 4000) || '无'}\n【已有语法】\n${text(library.syntaxMarkdown, 4000) || '无'}\n\n严格返回 JSON，不要 JSON 外的解释：\n{"thinkingMarkdown":"1. ...","syntaxMarkdown":"1. ...\\n${fence}python\\n...\\n${fence}"}\n\n【新增提交总结】\n${summaries}`
 }
 
 function parseAIResult(raw) {

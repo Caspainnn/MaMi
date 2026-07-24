@@ -80,7 +80,7 @@ Page({
     this.setData({ actionText: '生成中', actionBusy: true })
     try {
       const { result } = await wx.cloud.callFunction({ name: 'manageExperience', data: { action: 'refine' } })
-      if (result && result.code === 'NO_CONTENT') { this.showRefineModal('给码农的一封信', '这段时间还没有留下可新的复用的刷题总结。每次刷完题，在总结里面记下一步思路、一个坑或一条语法，码秘才好替你把经验沉淀下来哦~', '好的码秘，我也爱你😚'); return }
+      if (result && result.code === 'NO_CONTENT') { this.showRefineModal('给码农的一封信', '这段时间还没有留下新的可复用刷题总结。每次刷完题，在总结里面记下一个思路、一个坑或一条代码，码秘才好替你把经验沉淀下来哦~', '好的码秘，我也爱你😚'); return }
       if (result && result.code === 'NO_NEW_EXPERIENCE') { this.showRefineModal('暂无可追加经验', '这次总结里暂时没有足够明确、可复用的思路或语法。下次可以具体记录卡住的地方、关键判断或常用写法。', '知道了'); return }
       if (result && result.code === 'EXPERIENCE_DAILY_LIMIT') { this.showRefineModal('今日额度已用完', '“一键追加经验”每天最多使用 1 次。明天再来，让今天的总结继续沉淀吧。', '知道了'); return }
       if (!result || !result.success) throw new Error(result && result.message || '生成失败')

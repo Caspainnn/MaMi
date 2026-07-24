@@ -5,12 +5,24 @@ function formatDate(date) {
   return `${year}-${month}-${day}`
 }
 
+const REVIEW_DUE_DAYS = [1, 3, 7, 15, 31]
+const REVIEW_LIMIT_HINTS = {
+  1: '你确定？刷完包忘的（别问我咋知道的）',
+  2: '想想你背单词背几轮才记住...',
+  3: '如果赶时间的话也未尝不可~',
+  4: '明智的选择！天将降大任于斯人也...',
+  5: '你是码秘最骄傲的码农😚',
+}
+
 Page({
   data: {
     bank: null,
     planType: '',
     value: '',
     estimate: null,
+    reviewLimit: 5,
+    reviewLimitHint: REVIEW_LIMIT_HINTS[5],
+    reviewLimitOptions: [1, 2, 3, 4, 5],
     validationMessage: '',
     submitting: false,
   },
@@ -26,6 +38,11 @@ Page({
   chooseType(e) {
     this.setData({ planType: e.currentTarget.dataset.type, value: '', estimate: null, validationMessage: '' })
   },
+  chooseReviewLimit(e) {
+    const reviewLimit = Number(e.currentTarget.dataset.value)
+    this.setData({ reviewLimit, reviewLimitHint: REVIEW_LIMIT_HINTS[reviewLimit], estimate: null, validationMessage: '' })
+    this.calculateEstimate(this.data.value)
+  },
   updateValue(e) {
     const value = e.detail.value.replace(/[^0-9]/g, '')
     this.setData({ value })
@@ -33,26 +50,27 @@ Page({
   },
   calculateEstimate(rawValue) {
     const value = Number(rawValue)
-    const { bank, planType } = this.data
+    const { bank, planType, reviewLimit } = this.data
     if (!bank || !planType || !Number.isInteger(value) || value < 1) {
       this.setData({ estimate: null, validationMessage: '' })
       return
     }
-    if (planType === 'by_days' && value < 15) {
-      this.setData({ estimate: null, validationMessage: '达到 Lv5 需要经过第 15 天复习节点，目标天数不能少于 15 天。' })
+    const lastReviewDay = REVIEW_DUE_DAYS[reviewLimit - 1]
+    if (planType === 'by_days' && value < lastReviewDay) {
+      this.setData({ estimate: null, validationMessage: `选择 ${reviewLimit} 次复刷时，目标天数不能早于第 ${lastReviewDay} 天复习节点。` })
       return
     }
     const newLearningDays = planType === 'by_days'
-      ? value - 14
+      ? value - lastReviewDay + 1
       : Math.ceil(bank.count / value)
     const dailyNewCount = Math.ceil(bank.count / newLearningDays)
-    const targetDays = newLearningDays + 14
+    const targetDays = newLearningDays - 1 + lastReviewDay
     const finishDate = new Date()
     finishDate.setDate(finishDate.getDate() + targetDays)
-    const averageReviewCount = Math.ceil((bank.count * 4) / targetDays)
+    const averageReviewCount = Math.ceil((bank.count * reviewLimit) / (targetDays + 1))
     this.setData({
       validationMessage: '',
-      estimate: { dailyNewCount, averageReviewCount, targetDays, finishDate: formatDate(finishDate) },
+      estimate: { dailyNewCount, averageReviewCount, targetDays, finishDate: formatDate(finishDate), lastReviewDay },
     })
   },
   createPlan() {
@@ -72,6 +90,7 @@ Page({
             bankCode: this.data.bank.code,
             planType: this.data.planType,
             value: Number(this.data.value),
+            reviewLimit: this.data.reviewLimit,
           },
         }).then(({ result }) => {
           if (!result || !result.success) throw new Error((result && result.error) || '创建失败')
