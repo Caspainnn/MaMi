@@ -1,0 +1,4 @@
+interface:
+  display_name: "MaMi 阶段化开发"
+  short_description: "按阶段确认、逐项验收与文档同步的 MaMi 开发协作流程"
+  default_prompt: "Use $mami-phased-development to plan and deliver the next MaMi iteration one acceptance item at a time."
